@@ -1,17 +1,17 @@
 <project name="JWS Clear-text Signature Demo" default="help">
 
   <!-- set properties for this build -->
-  <property file="jws-jcs.properties"/>
+  <property file="shreq.properties"/>
   <property name="openkeystore.dir" location="${openkeystore}"/>
   <property name="src.dir" value="src"/>
   <property name="temp.dir" value=".tmp"/>
   <property name="dist.dir" value="dist"/>
-  <property name="class_war_path" value="WEB-INF/classes/org/webpki/webapps/jws_jcs"/>
+  <property name="class_war_path" value="WEB-INF/classes/org/webpki/webapps/shreq"/>
 
   <property name="logging" value="false"/>
   <property name="bouncycastle.first" value="true"/>
   
-  <property name="appcorename" value="jws-jcs"/>
+  <property name="appcorename" value="shreq"/>
   <property name="application" value="${appcorename}.war"/>
   
   <property name="keypassword" value="foo123"/>
@@ -20,10 +20,6 @@
   <property name="webpki.lib.dir" location="${openkeystore.dir}/library/dist"/>
   <property name="third.party.lib.dir" location="${openkeystore.dir}/resources/third-party-jars"/>
   
-  <property name="clientroot" value="mybank-clientroot"/>
-  <property name="clientkey_rsa" value="mybank-client-key-rsa"/>
-  <property name="clientkey_ec" value="mybank-client-key-ec"/>
-  
   <property name="javaversion" value="1.8"/>
   <property name="debug" value="on"/>
 
@@ -31,7 +27,7 @@
   <property name="catalina.home" value="${env.CATALINA_HOME}"/>
 
   <target name="help">
-      <echo message="build tomcat zip-distribution createcerts"/>
+      <echo message="build tomcat"/>
   </target>
 
   <target name="_init" unless="app_path">
@@ -103,34 +99,6 @@
       </zipfileset>
       <zipfileset file="sample-signature.json" prefix="${class_war_path}"/>
     </war>
-  </target>
-  
-  <target name="_unzipit" if="uu">
-    <delete dir="${dd}/${appcorename}"/>
-    <unzip src="${dd}/${appcorename}.zip" dest="${dd}"/>
-  </target>
-
-  <target name="zip-distribution">
-    <fail unless="dd" message="-&#10;
-***************************************************************&#10;
- You must define a distribution directory using the -D option:&#10;
- ant zip-distribution -Ddd=the_path_to_the_directory.&#10;
- Optionally you can specify -Duu=0 which deletes ${appcorename}&#10;
- and replaces the directory with the unzipped content&#10;
-***************************************************************&#10;"/>
-    <echo message="Producing ${appcorename} .zip and .zip.SHA1 files..."/> 
-    <delete file="${dd}/${appcorename}.zip" failonerror="false"/>
-    <zip destfile="${dd}/${appcorename}.zip">
-      <zipfileset dir="." prefix="${appcorename}">
-        <exclude name="/**/.*"/>
-        <exclude name="/.tmp/**"/>
-        <exclude name="**/.settings/**"/>
-        <exclude name="**/bin/**"/>
-        <exclude name="dist/**"/>
-      </zipfileset>
-    </zip>
-    <checksum file="${dd}/${appcorename}.zip" fileext=".SHA1" algorithm="sha1" forceOverwrite="yes"/>
-    <antcall target="_unzipit"/>
   </target>
    
 </project>

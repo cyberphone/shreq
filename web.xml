@@ -17,42 +17,17 @@
     </context-param>
 
     <listener>
-        <listener-class>org.webpki.webapps.jws_jcs.JWSService</listener-class>
+        <listener-class>org.webpki.webapps.shreq.SHREQService</listener-class>
      </listener>
 
     <servlet>
         <servlet-name>RequestServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.jws_jcs.RequestServlet</servlet-class>
+        <servlet-class>org.webpki.webapps.shreq.RequestServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>HomeServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.jws_jcs.HomeServlet</servlet-class>
-    </servlet>
-
-    <servlet>
-        <servlet-name>VerifyServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.jws_jcs.VerifyServlet</servlet-class>
-    </servlet>
-
-    <servlet>
-        <servlet-name>WebCryptoServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.jws_jcs.WebCryptoServlet</servlet-class>
-    </servlet>
-
-    <servlet>
-        <servlet-name>NoWebCryptoServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.jws_jcs.NoWebCryptoServlet</servlet-class>
-    </servlet>
-
-    <servlet>
-        <servlet-name>CreateServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.jws_jcs.CreateServlet</servlet-class>
-    </servlet>
-    
-    <servlet>
-        <servlet-name>JavaScriptSignatureServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.jws_jcs.JavaScriptSignatureServlet</servlet-class>
+        <servlet-class>org.webpki.webapps.shreq.HomeServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -63,31 +38,6 @@
     <servlet-mapping>
         <servlet-name>HomeServlet</servlet-name>
         <url-pattern>/home</url-pattern>
-    </servlet-mapping>
-    
-    <servlet-mapping>
-        <servlet-name>VerifyServlet</servlet-name>
-        <url-pattern>/verify</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>WebCryptoServlet</servlet-name>
-        <url-pattern>/webcrypto</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>NoWebCryptoServlet</servlet-name>
-        <url-pattern>/nowebcrypto</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>CreateServlet</servlet-name>
-        <url-pattern>/create</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>JavaScriptSignatureServlet</servlet-name>
-        <url-pattern>/jssignature</url-pattern>
     </servlet-mapping>
 
     <security-constraint>
