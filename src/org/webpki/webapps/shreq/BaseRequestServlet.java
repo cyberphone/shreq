@@ -33,11 +33,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
+import org.webpki.jose.JOSEAsymSignatureValidator;
 import org.webpki.jose.JOSEHmacValidator;
 import org.webpki.jose.JOSESupport;
+
 import org.webpki.json.JSONParser;
 
 import org.webpki.shreq.JSONRequestValidation;
@@ -49,7 +52,7 @@ import org.webpki.util.DebugFormatter;
 
 import org.webpki.webutil.ServletUtil;
 
-public class RequestServlet extends HttpServlet  implements ValidationKeyService {
+public abstract class BaseRequestServlet extends HttpServlet implements ValidationKeyService {
 
     private static final long serialVersionUID = 1L;
     
@@ -58,8 +61,10 @@ public class RequestServlet extends HttpServlet  implements ValidationKeyService
     
     private static final String JSON_CONTENT   = "application/json";
 
-    static Logger logger = Logger.getLogger(RequestServlet.class.getName());
+    static Logger logger = Logger.getLogger(BaseRequestServlet.class.getName());
 
+    protected abstract boolean externallyConfigured(); 
+    
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -153,10 +158,24 @@ public class RequestServlet extends HttpServlet  implements ValidationKeyService
                                                                     String keyId)
     throws IOException, GeneralSecurityException {
         if (signatureAlgorithm.isSymmetric()) {
+            if (externallyConfigured()) {
+                throw new IOException("This request URL only supports in-lined asymmetric JWKs");
+            }
             return new JOSEHmacValidator(
     DebugFormatter.getByteArrayFromHex("7fdd851a3b9d2dafc5f0d00030e22b9343900cd42ede4948568a4a2ee655291a"),
                                          (MACAlgorithms) signatureAlgorithm);
         }
-        return null;
+        PublicKey validationKey;
+        if (externallyConfigured()) {
+            if (publicKey == null) {
+                throw new IOException("This request URL requires in-lined asymmetric JWKs");
+            }
+            validationKey = publicKey;
+        } else {
+            // Lookup validation key
+            validationKey = null;
+        }
+        return new JOSEAsymSignatureValidator(validationKey, 
+                                              (AsymSignatureAlgorithms)signatureAlgorithm);
     }
 }

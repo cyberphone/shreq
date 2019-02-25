@@ -21,8 +21,13 @@
      </listener>
 
     <servlet>
-        <servlet-name>RequestServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.shreq.RequestServlet</servlet-class>
+        <servlet-name>ExtConfReqServlet</servlet-name>
+        <servlet-class>org.webpki.webapps.shreq.ExtConfReqServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>PreConfReqServlet</servlet-name>
+        <servlet-class>org.webpki.webapps.shreq.PreConfReqServlet</servlet-class>
     </servlet>
 
     <servlet>
@@ -31,8 +36,13 @@
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>RequestServlet</servlet-name>
-        <url-pattern>/request</url-pattern>
+        <servlet-name>ExtConfReqServlet</servlet-name>
+        <url-pattern>/extconfreq</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>PreConfReqServlet</servlet-name>
+        <url-pattern>/preconfreq</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

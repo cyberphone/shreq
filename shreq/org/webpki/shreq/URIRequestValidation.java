@@ -17,10 +17,15 @@
 package org.webpki.shreq;
 
 import java.io.IOException;
+
 import java.security.GeneralSecurityException;
+
 import java.util.LinkedHashMap;
 
 public class URIRequestValidation extends ValidationCore {
+    
+    static final String QUERY_STRING = REQ_JWS + "=";
+    static final int    QUERY_LENGTH = QUERY_STRING.length();
 
     public URIRequestValidation(String targetUri,
                                 String targetMethod,
@@ -30,17 +35,34 @@ public class URIRequestValidation extends ValidationCore {
 
 
     @Override
-    protected void createJWS_Payload() {
-        // TODO Auto-generated method stub
-        
+    protected void createJWS_Payload() throws IOException {
+        JWS_Payload = (targetMethod + "," + targetUri).getBytes("utf-8");
     }
 
 
     @Override
     protected void validateImplementation() throws IOException,
-            GeneralSecurityException {
-        // TODO Auto-generated method stub
+                                                   GeneralSecurityException {
+        // 5.2:3-4
+        int i = targetUri.indexOf(QUERY_STRING);
+        if (i < 10) {
+            error("Missing '" + QUERY_STRING + "'");
+        }
+        int next = targetUri.indexOf('&', i);
+        String jwsString;
+        if (next < 0) {
+            jwsString = targetUri.substring(i + QUERY_LENGTH);
+            targetUri = targetUri.substring(0, i - 1);
+        } else {
+            jwsString = targetUri.substring(i + QUERY_LENGTH, next);
+            targetUri = targetUri.substring(0, i) + targetUri.substring(next + 1);
+        }
+        decodeJWS_String(jwsString);
         
+        // 5.2:5
+        // TBD
+        
+        // 5.2:6-7 are performed in ValidationCore
     }
 
 }

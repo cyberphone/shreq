@@ -30,37 +30,13 @@ public class HomeServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-/*
-            HTML.output(
-                    response,
-                    HTML.getHTML(
-                            null,
-              "<table style=\"max-width=\"300px\">"
-            + "<tr><td align=\"center\" style=\"font-weight:bolder;font-size:10pt;font-family:arial,verdana\">JSON Clear Text Signature<br>&nbsp;</td></tr>"
-            + "<tr><td align=\"left\"><a href=\""
-            + baseurl
-            + "/verify\">Verify a JWS-JCS on the server</a></td></tr>"
-            + "<tr><td>&nbsp;</td></tr>"
-            + "<tr><td align=\"left\"><a href=\""
-            + baseurl
-            + "/create\">Create a JWS-JCS on the server</a></td></tr>"
-            + "<tr><td>&nbsp;</td></tr>"
-            + "<tr><td align=\"left\"><a href=\""
-            + baseurl
-            + "/webcrypto\">Create a JWS-JCS using WebCrypto</a></td></tr>"
-            + "<tr><td>&nbsp;</td></tr>"
-            + "<tr><td align=\"left\"><a target=\"_blank\" href=\"https://github.com/cyberphone/jws-jcs#combining-detached-jws-with-jcs-json-canonicalization-scheme\">JWS-JCS Documentation</a></td></tr>"
-            + "</table>"));
-        }
-*/
-
 
         HTML.standardPage(response, null, new StringBuilder(
-            "<div class=\"header\">JSON Clear Text Signature</div>" +
+            "<div class=\"header\">SHREQ - Signed HTPP Requests</div>" +
             "<div style=\"padding-top:15pt\">This site permits testing and debugging systems utilizing a " +
-            "scheme for clear text JSON signatures tentatively targeted for " +
+            "scheme for signing HTTP requests tentatively targeted for " +
             "IETF standardization.  For detailed technical information and " +
-            "open source code, click on the JWS&#x2022;JCS logotype.</div>" +
+            "open source code, click on the SHREQ logotype.</div>" +
             "<div style=\"display:flex;justify-content:center\"><table>" +
             "<tr><td><div class=\"multibtn\" " +
             "onclick=\"document.location.href='create'\" " +
@@ -71,11 +47,6 @@ public class HomeServlet extends HttpServlet {
             "onclick=\"document.location.href='verify'\" " +
             "title=\"Verify JSON signatures\">" +
             "Verify JSON Signatures" +
-            "</div></td></tr>" +
-            "<tr><td><div class=\"multibtn\" " +
-            "onclick=\"document.location.href='webcrypto'\" " +
-            "title=\"&quot;Experimental&quot; - WebCrypto\">" +
-            "&quot;Experimental&quot; - WebCrypto" +
             "</div></td></tr>" +
             "</table></div>" +
             "<div class=\"sitefooter\">Privacy/security notice: No user provided data is " +

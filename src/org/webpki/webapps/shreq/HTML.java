@@ -34,7 +34,7 @@ public class HTML {
     static final String HTML_INIT = "<!DOCTYPE html>" +
         "<html lang=\"en\"><head><link rel=\"icon\" href=\"webpkiorg.png\" sizes=\"192x192\">" + 
         "<meta name=\"viewport\" content=\"initial-scale=1.0\"/>" + 
-        "<title>JWS/JCS Signature Lab</title>" + 
+        "<title>SHREQ Laboratory</title>" + 
         "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">";
 
     static String encode(String val) {
@@ -145,14 +145,6 @@ public class HTML {
         HTML.output(response, HTML.getHTML(javaScript, html.toString()));
     }
 
-    public static void noWebCryptoPage(HttpServletResponse response)
-            throws IOException, ServletException {
-        HTML.output(
-                response,
-                HTML.getHTML(
-                        null,
-                        "Your Browser Doesn't Support WebCrypto :-("));
-    }
 
     static String javaScript(String string) {
         StringBuilder html = new StringBuilder();
