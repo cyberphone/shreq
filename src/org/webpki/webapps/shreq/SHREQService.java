@@ -19,6 +19,11 @@ package org.webpki.webapps.shreq;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+
+import java.util.LinkedHashMap;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,6 +37,8 @@ import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.util.ArrayUtil;
+import org.webpki.util.DebugFormatter;
+import org.webpki.util.PEMDecoder;
 
 import org.webpki.webutil.InitPropertyReader;
 
@@ -46,6 +53,10 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
     static String keyDeclarations;
     
     static boolean logging;
+    
+    static LinkedHashMap<String, byte[]> predefinedSecretKeys = new LinkedHashMap<String, byte[]>();
+
+    static LinkedHashMap<String, KeyPair> predefinedKeyPairs = new LinkedHashMap<String, KeyPair>();
 
     class KeyDeclaration {
         
@@ -66,8 +77,20 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
                 .append(" = {");
         }
 
-        KeyDeclaration addKey(SignatureAlgorithms alg, String fileOrNull) throws IOException {
+        KeyDeclaration addKey(SignatureAlgorithms alg, String fileOrNull) throws IOException,
+                                                                                 GeneralSecurityException {
             String algId = alg.getAlgorithmId(AlgorithmPreferences.JOSE);
+            if (name.equals(PRIVATE_KEYS)) {
+                if (fileOrNull == null) {
+                    predefinedKeyPairs.put(algId, predefinedKeyPairs.get(last));
+                } else {
+                    predefinedKeyPairs.put(algId,
+                PEMDecoder.getKeyPair(getEmbeddedResourceBinary(fileOrNull + base)));
+                }
+            } else if (name.equals(SECRET_KEYS)) {
+                predefinedSecretKeys.put(algId, 
+    DebugFormatter.getByteArrayFromHex(getEmbeddedResourceString(fileOrNull + base).trim()));
+            }
             if (fileOrNull == null) {
                 after.append(name)
                      .append('.')
@@ -104,9 +127,13 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
         }
         return is;
     }
-    
+ 
+    byte[] getEmbeddedResourceBinary(String name) throws IOException {
+        return ArrayUtil.getByteArrayFromInputStream(getResource(name));
+    }
+
     String getEmbeddedResourceString(String name) throws IOException {
-        return new String(ArrayUtil.getByteArrayFromInputStream(getResource(name)), "utf-8");
+        return new String(getEmbeddedResourceBinary(name), "utf-8");
     }
 
     @Override

@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
@@ -47,8 +48,6 @@ import org.webpki.shreq.JSONRequestValidation;
 import org.webpki.shreq.URIRequestValidation;
 import org.webpki.shreq.ValidationCore;
 import org.webpki.shreq.ValidationKeyService;
-
-import org.webpki.util.DebugFormatter;
 
 import org.webpki.webutil.ServletUtil;
 
@@ -161,8 +160,8 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             if (externallyConfigured()) {
                 throw new IOException("This request URL only supports in-lined asymmetric JWKs");
             }
-            return new JOSEHmacValidator(
-    DebugFormatter.getByteArrayFromHex("7fdd851a3b9d2dafc5f0d00030e22b9343900cd42ede4948568a4a2ee655291a"),
+            return new JOSEHmacValidator(SHREQService.predefinedSecretKeys
+                    .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE)),
                                          (MACAlgorithms) signatureAlgorithm);
         }
         PublicKey validationKey;
@@ -172,8 +171,12 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             }
             validationKey = publicKey;
         } else {
-            // Lookup validation key
-            validationKey = null;
+            // Lookup predefined validation key
+            validationKey = SHREQService.predefinedKeyPairs
+        .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE)).getPublic();
+            if (publicKey != null && !publicKey.equals(validationKey)) {
+                throw new GeneralSecurityException("In-lined JWK differs from predefined");
+            }
         }
         return new JOSEAsymSignatureValidator(validationKey, 
                                               (AsymSignatureAlgorithms)signatureAlgorithm);
