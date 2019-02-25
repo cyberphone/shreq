@@ -18,6 +18,9 @@ package org.webpki.webapps.shreq;
 
 import java.io.IOException;
 
+import java.security.GeneralSecurityException;
+import java.security.PublicKey;
+
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 
@@ -30,11 +33,23 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.webpki.crypto.MACAlgorithms;
+import org.webpki.crypto.SignatureAlgorithms;
+
+import org.webpki.jose.JOSEHmacValidator;
+import org.webpki.jose.JOSESupport;
 import org.webpki.json.JSONParser;
+
+import org.webpki.shreq.JSONRequestValidation;
+import org.webpki.shreq.URIRequestValidation;
+import org.webpki.shreq.ValidationCore;
+import org.webpki.shreq.ValidationKeyService;
+
+import org.webpki.util.DebugFormatter;
 
 import org.webpki.webutil.ServletUtil;
 
-public class RequestServlet extends HttpServlet {
+public class RequestServlet extends HttpServlet  implements ValidationKeyService {
 
     private static final long serialVersionUID = 1L;
     
@@ -50,18 +65,18 @@ public class RequestServlet extends HttpServlet {
             throws IOException, ServletException {
         ValidationCore validationCore = null;
 
-        // Recreate the Target URI
-        String targetUri = request.getScheme() + "://" +
+        // Get the Target Method (4.2:1 , 5.2:1)
+        String targetMethod = request.getMethod();
+        
+        // Recreate the normalized Target URI (4.2:2 , 5.2:2)
+        String targetUri = ValidationCore.normalizeTargetURI(request.getScheme() + "://" +
                 request.getServerName() + 
                 ("http".equals(request.getScheme()) && request.getServerPort() == 80 ||
                  "https".equals(request.getScheme()) && request.getServerPort() == 443 ? 
                  "" : ":" + request.getServerPort()) +
                 request.getRequestURI() +
-               (request.getQueryString() == null ? "" : "?" + request.getQueryString());
+               (request.getQueryString() == null ? "" : "?" + request.getQueryString()));
 
-        // Get the Target Method
-        String targetMethod = request.getMethod().toUpperCase();
-        
         // Collect HTTP Headers in a Lowercase Format
         LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
         @SuppressWarnings("unchecked")
@@ -71,7 +86,6 @@ public class RequestServlet extends HttpServlet {
             headerMap.put(header.toLowerCase(), request.getHeader(header));
         }
         
-        // Now, it starts specification wise :-)
         try {
 
             // 3. Determining Request Type
@@ -97,7 +111,7 @@ public class RequestServlet extends HttpServlet {
             }
             
             // Core Request Data Successfully Collected - Validate!
-            validationCore.validate();
+            validationCore.validate(this);
             
             // No exceptions => We did it!
             response.resetBuffer();
@@ -111,10 +125,19 @@ public class RequestServlet extends HttpServlet {
         } catch (Exception e) {
             // Houston, we got a problem...
             response.resetBuffer();
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setStatus(validationCore == null || !validationCore.isValidating() ?
+                HttpServletResponse.SC_BAD_REQUEST : HttpServletResponse.SC_UNAUTHORIZED);
             response.setHeader(CONTENT_TYPE, "text/plain;utf-8");
             ServletOutputStream os = response.getOutputStream();
-            os.println("ERROR: " + e.getMessage());
+            os.println(e.getClass().getName() + ": "+ e.getMessage());
+            StackTraceElement[] st = e.getStackTrace();
+            int length = st.length;
+            if (length > 10) {
+                length = 10;
+            }
+            for (int i = 0; i < length; i++) {
+              os.println("  at " + st[i].toString());
+            }
             if (validationCore == null) {
                 os.println("Validation context not available");
             } else {
@@ -122,5 +145,18 @@ public class RequestServlet extends HttpServlet {
             }
             response.flushBuffer();
         }
+    }
+
+    @Override
+    public JOSESupport.CoreSignatureValidator getSignatureValidator(SignatureAlgorithms signatureAlgorithm,
+                                                                    PublicKey publicKey, 
+                                                                    String keyId)
+    throws IOException, GeneralSecurityException {
+        if (signatureAlgorithm.isSymmetric()) {
+            return new JOSEHmacValidator(
+    DebugFormatter.getByteArrayFromHex("7fdd851a3b9d2dafc5f0d00030e22b9343900cd42ede4948568a4a2ee655291a"),
+                                         (MACAlgorithms) signatureAlgorithm);
+        }
+        return null;
     }
 }

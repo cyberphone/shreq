@@ -4,6 +4,7 @@
   <property file="shreq.properties"/>
   <property name="openkeystore.dir" location="${openkeystore}"/>
   <property name="src.dir" value="src"/>
+  <property name="shreq.dir" value="shreq"/>
   <property name="temp.dir" value=".tmp"/>
   <property name="dist.dir" value="dist"/>
   <property name="class_war_path" value="WEB-INF/classes/org/webpki/webapps/shreq"/>
@@ -58,7 +59,7 @@
     <javac debug="${debug}"
            source="${javaversion}"
            target="${javaversion}"
-           srcdir="${src.dir}"
+           srcdir="${src.dir}:${shreq.dir}"
            destdir="${temp.dir}"
            includeAntRuntime="false">
         <classpath>

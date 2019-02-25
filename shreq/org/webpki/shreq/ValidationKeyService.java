@@ -14,22 +14,22 @@
  *  limitations under the License.
  *
  */
-package org.webpki.webapps.shreq;
+package org.webpki.shreq;
 
-import java.util.LinkedHashMap;
+import java.io.IOException;
 
-public class URIRequestValidation extends ValidationCore {
+import java.security.GeneralSecurityException;
+import java.security.PublicKey;
 
-    public URIRequestValidation(String targetUri,
-                                String targetMethod,
-                                LinkedHashMap<String, String> headerMap) {
-        super(targetUri, targetMethod, headerMap);
-    }
+import org.webpki.crypto.SignatureAlgorithms;
 
-    @Override
-    protected void validate() {
-        // TODO Auto-generated method stub
-        
-    }
+import org.webpki.jose.JOSESupport;
+
+public interface ValidationKeyService {
+
+    public JOSESupport.CoreSignatureValidator 
+        getSignatureValidator(SignatureAlgorithms signatureAlgorithm,
+                              PublicKey publicKey,
+                              String keyId) throws IOException, GeneralSecurityException;
 
 }

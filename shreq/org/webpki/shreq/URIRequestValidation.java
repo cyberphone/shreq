@@ -14,35 +14,33 @@
  *  limitations under the License.
  *
  */
-package org.webpki.webapps.shreq;
+package org.webpki.shreq;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.LinkedHashMap;
 
-import org.webpki.json.JSONObjectReader;
+public class URIRequestValidation extends ValidationCore {
 
-public class JSONRequestValidation extends ValidationCore {
-    
-    JSONObjectReader message;  // "Message" in the specification
-
-    public JSONRequestValidation(String targetUri,
-                                 String targetMethod,
-                                 LinkedHashMap<String, String> headerMap,
-                                 JSONObjectReader message) {
+    public URIRequestValidation(String targetUri,
+                                String targetMethod,
+                                LinkedHashMap<String, String> headerMap) {
         super(targetUri, targetMethod, headerMap);
-        this.message = message;
     }
+
 
     @Override
-    protected void validate() throws IOException {
-        // 4.2 step 1-4 are already performed
+    protected void createJWS_Payload() {
+        // TODO Auto-generated method stub
         
-        // 4.2:5
-        String declaredUri = message.getString(REQ_URI);
-        if (declaredUri.equals(targetUri)) {
-            error("Declared URI=" + declaredUri + " Actual URI=" + targetUri);
-        }
     }
 
+
+    @Override
+    protected void validateImplementation() throws IOException,
+            GeneralSecurityException {
+        // TODO Auto-generated method stub
+        
+    }
 
 }
