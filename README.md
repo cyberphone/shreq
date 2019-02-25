@@ -1,6 +1,6 @@
 ![SHREQ](https://cyberphone.github.io/doc/security/shreq.svg)
 
-# Signed HTTP Requests (SHREQ)
+# Signed HTTP Requests
 
 Java code for SHREQ demo and validation
 
