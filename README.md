@@ -2,7 +2,7 @@
 
 # Signed HTTP Requests
 
-[SQREQ documentation](https://cyberphone.github.io/ietf-signed-http-requests)
+[SHREQ documentation](https://cyberphone.github.io/ietf-signed-http-requests)
 
 This repository contains Java code for SHREQ demo and validation
 
