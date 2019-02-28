@@ -21,6 +21,21 @@
      </listener>
 
     <servlet>
+        <servlet-name>HomeServlet</servlet-name>
+        <servlet-class>org.webpki.webapps.shreq.HomeServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>CreateServlet</servlet-name>
+        <servlet-class>org.webpki.webapps.shreq.CreateServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>ValidateServlet</servlet-name>
+        <servlet-class>org.webpki.webapps.shreq.ValidateServlet</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>ExtConfReqServlet</servlet-name>
         <servlet-class>org.webpki.webapps.shreq.ExtConfReqServlet</servlet-class>
     </servlet>
@@ -30,10 +45,20 @@
         <servlet-class>org.webpki.webapps.shreq.PreConfReqServlet</servlet-class>
     </servlet>
 
-    <servlet>
+    <servlet-mapping>
         <servlet-name>HomeServlet</servlet-name>
-        <servlet-class>org.webpki.webapps.shreq.HomeServlet</servlet-class>
-    </servlet>
+        <url-pattern>/home</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>CreateServlet</servlet-name>
+        <url-pattern>/create</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>ValidateServlet</servlet-name>
+        <url-pattern>/validate</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>ExtConfReqServlet</servlet-name>
@@ -45,10 +70,6 @@
         <url-pattern>/preconfreq</url-pattern>
     </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>HomeServlet</servlet-name>
-        <url-pattern>/home</url-pattern>
-    </servlet-mapping>
 
     <security-constraint>
       <web-resource-collection>

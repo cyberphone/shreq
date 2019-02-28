@@ -16,9 +16,7 @@
  */
 package org.webpki.webapps.shreq;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import java.util.logging.Logger;
 
@@ -34,7 +32,7 @@ public class HTML {
     static final String HTML_INIT = "<!DOCTYPE html>" +
         "<html lang=\"en\"><head><link rel=\"icon\" href=\"webpkiorg.png\" sizes=\"192x192\">" + 
         "<meta name=\"viewport\" content=\"initial-scale=1.0\"/>" + 
-        "<title>SHREQ Laboratory</title>" + 
+        "<title>SHREQ Lab</title>" + 
         "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">";
 
     static String encode(String val) {
@@ -145,6 +143,14 @@ public class HTML {
         HTML.output(response, HTML.getHTML(javaScript, html.toString()));
     }
 
+    public static void noWebCryptoPage(HttpServletResponse response)
+            throws IOException, ServletException {
+        HTML.output(
+                response,
+                HTML.getHTML(
+                        null,
+                        "Your Browser Doesn't Support WebCrypto :-("));
+    }
 
     static String javaScript(String string) {
         StringBuilder html = new StringBuilder();
@@ -160,25 +166,12 @@ public class HTML {
 
     public static void errorPage(HttpServletResponse response, Exception e)
             throws IOException, ServletException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintWriter printerWriter = new PrintWriter(baos);
-        e.printStackTrace(printerWriter);
-        printerWriter.flush();
-        String stackTrace = baos.toString("utf-8");
-        StringBuilder error = new StringBuilder(e.getMessage())
-            .append("\nStack trace:\n");
-        int begin = 0;
-        for (int q = 0; q < 20; q++) {
-            int end = stackTrace.indexOf('\n', begin);
-            if (end < 0) break;
-            error.append(stackTrace.substring(begin, begin = ++end));
-        }
         standardPage(response,
                      null,
                      new StringBuilder(
             "<div class=\"header\" style=\"color:red\">Something went wrong...</div>" +
-            "<div>")
-        .append(encode(error.toString()).replace("\n", "<br>"))
-        .append("</div>"));
+            "<div><pre>")
+        .append(encode(BaseRequestServlet.getStackTrace(e)))
+        .append("</pre></div>"));
     }
 }

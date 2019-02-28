@@ -24,7 +24,7 @@ import java.util.LinkedHashMap;
 
 public class URIRequestValidation extends ValidationCore {
     
-    static final String QUERY_STRING = REQ_JWS + "=";
+    static final String QUERY_STRING = SHREQSupport.SHREQ_LABEL + "=";
     static final int    QUERY_LENGTH = QUERY_STRING.length();
 
     public URIRequestValidation(String targetUri,
@@ -57,7 +57,7 @@ public class URIRequestValidation extends ValidationCore {
             jwsString = targetUri.substring(i + QUERY_LENGTH, next);
             targetUri = targetUri.substring(0, i) + targetUri.substring(next + 1);
         }
-        decodeJWS_String(jwsString);
+        decodeJWS_String(jwsString, false);
         
         // 5.2:5
         // TBD

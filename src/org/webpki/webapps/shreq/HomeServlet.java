@@ -27,6 +27,9 @@ import javax.servlet.http.HttpServletResponse;
 public class HomeServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
+    
+    static final String EXTCONFREQ             = "/extconfreq";
+    static final String PRECONFREQ             = "/preconfreq";
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {

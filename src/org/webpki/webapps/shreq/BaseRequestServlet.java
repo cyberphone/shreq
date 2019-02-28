@@ -45,6 +45,7 @@ import org.webpki.jose.JOSESupport;
 import org.webpki.json.JSONParser;
 
 import org.webpki.shreq.JSONRequestValidation;
+import org.webpki.shreq.SHREQSupport;
 import org.webpki.shreq.URIRequestValidation;
 import org.webpki.shreq.ValidationCore;
 import org.webpki.shreq.ValidationKeyService;
@@ -64,6 +65,32 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
     protected abstract boolean externallyConfigured(); 
     
+    static String getStackTrace(Exception e) {
+        StringBuffer error = new StringBuffer("Stack trace:\n")
+            .append(e.getClass().getName())
+            .append(": ")
+            .append(e.getMessage());
+        StackTraceElement[] st = e.getStackTrace();
+        int length = st.length;
+        if (length > 20) {
+            length = 20;
+        }
+        for (int i = 0; i < length; i++) {
+          error.append("\n  at " + st[i].toString());
+        }
+        return error.toString();
+    }
+    
+    static String getUrlFromRequest(HttpServletRequest request) {
+        return request.getScheme() + "://" +
+                request.getServerName() + 
+                ("http".equals(request.getScheme()) && request.getServerPort() == 80 ||
+                 "https".equals(request.getScheme()) && request.getServerPort() == 443 ? 
+                 "" : ":" + request.getServerPort()) +
+                request.getRequestURI() +
+               (request.getQueryString() == null ? "" : "?" + request.getQueryString());
+    }
+    
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -73,13 +100,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         String targetMethod = request.getMethod();
         
         // Recreate the normalized Target URI (4.2:2 , 5.2:2)
-        String targetUri = ValidationCore.normalizeTargetURI(request.getScheme() + "://" +
-                request.getServerName() + 
-                ("http".equals(request.getScheme()) && request.getServerPort() == 80 ||
-                 "https".equals(request.getScheme()) && request.getServerPort() == 443 ? 
-                 "" : ":" + request.getServerPort()) +
-                request.getRequestURI() +
-               (request.getQueryString() == null ? "" : "?" + request.getQueryString()));
+        String targetUri = SHREQSupport.normalizeTargetURI(getUrlFromRequest(request));
 
         // Collect HTTP Headers in a Lowercase Format
         LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
@@ -133,15 +154,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
                 HttpServletResponse.SC_BAD_REQUEST : HttpServletResponse.SC_UNAUTHORIZED);
             response.setHeader(CONTENT_TYPE, "text/plain;utf-8");
             ServletOutputStream os = response.getOutputStream();
-            os.println(e.getClass().getName() + ": "+ e.getMessage());
-            StackTraceElement[] st = e.getStackTrace();
-            int length = st.length;
-            if (length > 10) {
-                length = 10;
-            }
-            for (int i = 0; i < length; i++) {
-              os.println("  at " + st[i].toString());
-            }
+            os.println(getStackTrace(e));
             if (validationCore == null) {
                 os.println("Validation context not available");
             } else {
@@ -151,6 +164,11 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         }
     }
 
+    void extConfError() throws IOException {
+        throw new IOException("'" + HomeServlet.EXTCONFREQ +
+                              "' only supports requests with in-lined asymmetric JWKs");
+    }
+
     @Override
     public JOSESupport.CoreSignatureValidator getSignatureValidator(SignatureAlgorithms signatureAlgorithm,
                                                                     PublicKey publicKey, 
@@ -158,7 +176,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
     throws IOException, GeneralSecurityException {
         if (signatureAlgorithm.isSymmetric()) {
             if (externallyConfigured()) {
-                throw new IOException("This request URL only supports in-lined asymmetric JWKs");
+                extConfError();
             }
             return new JOSEHmacValidator(SHREQService.predefinedSecretKeys
                     .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE)),
@@ -167,7 +185,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         PublicKey validationKey;
         if (externallyConfigured()) {
             if (publicKey == null) {
-                throw new IOException("This request URL requires in-lined asymmetric JWKs");
+                extConfError();
             }
             validationKey = publicKey;
         } else {

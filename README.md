@@ -4,7 +4,7 @@
 
 [SHREQ documentation](https://cyberphone.github.io/ietf-signed-http-requests)
 
-This repository contains Java code for SHREQ demo and validation
+This repository contains Java code for SHREQ demo and validation.
 
 ### Testing with "Curl"
 This line POSTs a signed JSON request:

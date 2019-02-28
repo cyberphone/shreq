@@ -42,14 +42,6 @@ public abstract class ValidationCore {
     
     String targetMethod;
     
-    static final String REQ_URI        = "$req.uri";
-    static final String REQ_METHOD     = "$req.mtd";
-    static final String REQ_HEADER     = "$req.hdr";
-    static final String REQ_JWS        = "$req.jws";
-    
-    static final String DEFAULT_METHOD = "POST";
-
-   
     protected LinkedHashMap<String, String> headerMap;
 
     protected String jwsProtectedHeaderB64U;
@@ -109,14 +101,20 @@ public abstract class ValidationCore {
     }
 
     // 6.6
-    protected void decodeJWS_String(String jwsString) throws IOException {
+    protected void decodeJWS_String(String jwsString, boolean detached) throws IOException {
         // :1
         int endOfHeader = jwsString.indexOf('.');
         int lastDot = jwsString.lastIndexOf('.');
-        if (endOfHeader < 5 || endOfHeader != lastDot - 1 || lastDot > jwsString.length() - 5) {
-            error("JWS syntax, must be Header..Signature");
+        if (endOfHeader < 5 || lastDot > jwsString.length() - 5) {
+            error("JWS syntax, must be Header.[Payload].Signature");
         }
-
+        if (detached) {
+            if (endOfHeader != lastDot - 1) {
+                error("JWS syntax, must be Header..Signature");
+            }
+        } else {
+            JWS_Payload = Base64URL.decode(jwsString.substring(endOfHeader + 1, lastDot));
+        }
         // :2
         jwsProtectedHeaderB64U = jwsString.substring(0, endOfHeader);
         
@@ -127,12 +125,6 @@ public abstract class ValidationCore {
         JWS_Signature = Base64URL.decode(jwsString.substring(lastDot + 1));
     }
 
-    // 6.7
-    public static String normalizeTargetURI(String uri) {
-        // To be defined and implemented
-        // The famous "no-op" algorithm :)
-        return uri;
-    }
 
     // 6.8
     protected void validateHeaderDigest(JSONObjectReader headerObject) throws IOException {
@@ -157,10 +149,11 @@ public abstract class ValidationCore {
         }
 
         // Unused JWS header elements indicate problems...
-        JWS_Protected_Header.checkForUnread();
+        // Disabled, this is a demo :)
+        // JWS_Protected_Header.checkForUnread();
         
         // 6.9:2-4
-        JOSESupport.validateDetachedJwsSignature(
+        JOSESupport.validateJwsSignature(
                 jwsProtectedHeaderB64U, 
                 JWS_Payload,
                 JWS_Signature, 
