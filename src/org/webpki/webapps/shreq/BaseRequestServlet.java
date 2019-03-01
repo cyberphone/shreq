@@ -174,7 +174,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
     }
 
     void extConfError() throws IOException {
-        throw new IOException("'" + HomeServlet.EXTCONFREQ +
+        throw new IOException("'" + BaseGuiServlet.EXTCONFREQ +
                               "' only supports requests with in-lined asymmetric JWKs");
     }
 

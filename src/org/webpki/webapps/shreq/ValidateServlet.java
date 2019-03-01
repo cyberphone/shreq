@@ -26,7 +26,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -48,22 +48,9 @@ import org.webpki.util.Base64URL;
 import org.webpki.util.DebugFormatter;
 import org.webpki.util.PEMDecoder;
 
-public class ValidateServlet extends HttpServlet {
+public class ValidateServlet extends BaseGuiServlet {
 
     private static final long serialVersionUID = 1L;
-
-    static Logger logger = Logger.getLogger(ValidateServlet.class.getName());
-
-    // HTML form arguments
-    static final String JSON_PAYLOAD         = "jws";
-
-    static final String JWS_VALIDATION_KEY = "vkey";
-    
-    static final String TARGET_URI            = "uri";
-    
-    static final String HTTP_METHOD      = "siglbl";
-    
-    static String sampleRequest;
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -74,11 +61,11 @@ public class ValidateServlet extends HttpServlet {
             }
             logger.info("JSON Signature Verification Entered");
             // Get the two input data items
-            String signedJsonObject = CreateServlet.getParameter(request, JSON_PAYLOAD);
+            String signedJsonObject = getParameter(request, JSON_PAYLOAD);
             boolean jsonRequest = signedJsonObject.length() > 0;
-            String uri = CreateServlet.getParameter(request, TARGET_URI);
-            String validationKey = CreateServlet.getParameter(request, JWS_VALIDATION_KEY);
-            String requestMethod = CreateServlet.getParameter(request, HTTP_METHOD);
+            String uri = getParameter(request, TARGET_URI);
+            String validationKey = getParameter(request, JWS_VALIDATION_KEY);
+            String requestMethod = getParameter(request, HTTP_METHOD);
 
             // Parse the JSON data
             StringBuilder html = new StringBuilder();
@@ -216,10 +203,10 @@ public class ValidateServlet extends HttpServlet {
                         JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
                                                           AsymSignatureAlgorithms.ECDSA_SHA256);
                 JSONObjectWriter writer = 
-                        new JSONObjectWriter(JSONParser.parse(CreateServlet.TEST_MESSAGE));
+                        new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
                 
                 JSONObjectWriter shreqObject = 
-                        SHREQSupport.createJSONRequestHeader(CreateServlet.getDefaultUri(request),
+                        SHREQSupport.createJSONRequestHeader(getDefaultUri(request),
                                                              "POST",
                                                              new GregorianCalendar());
                 writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
@@ -252,7 +239,7 @@ public class ValidateServlet extends HttpServlet {
             .append(HTML.fancyText(true,
                 TARGET_URI,
                 1, 
-                HTML.encode(CreateServlet.getDefaultUri(request)),
+                HTML.encode(getDefaultUri(request)),
                 "Target URI"))
             .append(HTML.fancyText(true,
                 HTTP_METHOD,

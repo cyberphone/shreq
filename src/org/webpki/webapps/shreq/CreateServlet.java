@@ -24,15 +24,11 @@ import java.security.KeyPair;
 
 import java.util.GregorianCalendar;
 
-import java.util.logging.Logger;
-
 import javax.servlet.ServletException;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
@@ -52,164 +48,9 @@ import org.webpki.util.Base64;
 import org.webpki.util.DebugFormatter;
 import org.webpki.util.PEMDecoder;
 
-public class CreateServlet extends HttpServlet {
+public class CreateServlet extends BaseGuiServlet {
     
-    static Logger logger = Logger.getLogger(CreateServlet.class.getName());
-
     private static final long serialVersionUID = 1L;
-
-    // HTML form arguments
-    static final String PRM_URI          = "uri";
-
-    static final String PRM_JSON_DATA    = "json";
-    
-    static final String PRM_JWS_EXTRA    = "xtra";
-
-    static final String PRM_SECRET_KEY   = "sec";
-
-    static final String PRM_PRIVATE_KEY  = "priv";
-
-    static final String PRM_CERT_PATH    = "cert";
-
-    static final String PRM_ALGORITHM    = "alg";
-
-    static final String PRM_METHOD       = "mtd";
-    static final String PRM_SCHEME       = "scheme";
-
-    static final String FLG_CERT_PATH    = "cerflg";
-    static final String FLG_JWK_INLINE   = "jwkflg";
-    static final String FLG_IAT_PRESENT  = "iatflg";
-    
-    static final String DEFAULT_ALGORITHM   = "ES256";
-    static final String DEFAULT_JSON_METHOD = "POST";
-    static final String DEFAULT_URI_METHOD  = "GET";
-    
-    static final String TEST_MESSAGE = 
-            "{\n" +
-            "  \"statement\": \"Hello signed world!\",\n" +
-            "  \"otherProperties\": [2e+3, true]\n" +
-            "}";
-    
-    static String _defaultTargetUri;
-    
-    static String getDefaultUri(HttpServletRequest request) {
-        if (_defaultTargetUri == null) {
-            synchronized(CreateServlet.class) {
-                String url = BaseRequestServlet.getUrlFromRequest(request);
-                _defaultTargetUri = url.substring(0, url.indexOf("/shreq/") + 6) +
-                        HomeServlet.PRECONFREQ + "?id=456";
-            }
-        }
-        return _defaultTargetUri;
-    }
-    
-    static final String[] METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "CONNECT"};
-    
-    static class SelectMethod {
-
-        StringBuilder html = new StringBuilder("<select name=\"" +
-                PRM_METHOD + "\" id=\"" + PRM_METHOD + "\">");
-        
-        SelectMethod() {
-            for (String method : METHODS) {
-                html.append("<option value=\"")
-                    .append(method)
-                    .append("\"")
-                    .append(method.equals("POST") ? " selected>" : ">")
-                    .append(method)
-                    .append("</option>");
-            }
-        }
-
-        @Override
-        public String toString() {
-            return html.append("</select>").toString();
-        }
-    }
-    
-    class SelectAlg {
-
-        String preSelected;
-        StringBuilder html = new StringBuilder("<select name=\"" +
-                PRM_ALGORITHM + "\" id=\"" +
-                PRM_ALGORITHM + "\" onchange=\"algChange(this.value)\">");
-        
-        SelectAlg(String preSelected) {
-            this.preSelected = preSelected;
-        }
-
-        SelectAlg add(SignatureAlgorithms algorithm) throws IOException {
-            String algId = algorithm.getAlgorithmId(AlgorithmPreferences.JOSE);
-            html.append("<option value=\"")
-                .append(algId)
-                .append("\"")
-                .append(algId.equals(preSelected) ? " selected>" : ">")
-                .append(algId)
-                .append("</option>");
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            return html.append("</select>").toString();
-        }
-    }
-    
-    StringBuilder checkBox(String idName, String text, boolean checked, String onchange) {
-        StringBuilder html = new StringBuilder("<div style=\"display:flex;align-items:center\"><input type=\"checkbox\" id=\"")
-            .append(idName)
-            .append("\" name=\"")
-            .append(idName)
-            .append("\"");
-        if (checked) {
-            html.append(" checked");
-        }
-        if (onchange != null) {
-            html.append(" onchange=\"")
-                .append(onchange)
-                .append("\"");
-        }
-        html.append("><div style=\"display:inline-block\">")
-            .append(text)
-            .append("</div></div>");
-        return html;
-    }
-
-    StringBuilder radioButton(String name, String text, String value, boolean checked, String onchange) {
-        StringBuilder html = new StringBuilder("<div style=\"display:flex;align-items:center\"><input type=\"radio\" name=\"")
-            .append(name)
-            .append("\" value=\"")
-            .append(value)
-            .append("\"");
-        if (checked) {
-            html.append(" checked");
-        }
-        if (onchange != null) {
-            html.append(" onchange=\"")
-                .append(onchange)
-                .append("\"");
-        }
-        html.append("><div style=\"display:inline-block\">")
-            .append(text)
-            .append("</div></div>");
-        return html;
-    }
-    
-    static StringBuilder parameterBox(String header, StringBuilder body) {
-        return new StringBuilder(
-            "<div style=\"display:flex;justify-content:center;margin-top:20pt\">" +
-              "<div class=\"sigparmbox\">" +
-                "<div style=\"display:flex;justify-content:center\">" +
-                  "<div class=\"sigparmhead\">")
-        .append(header)
-        .append(
-                  "</div>" +
-                "</div>")
-        .append(body)
-        .append(
-              "</div>" +
-            "</div>");      
-    }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -223,7 +64,7 @@ public class CreateServlet extends HttpServlet {
             .append(
                 HTML.fancyText(
                         true,
-                        PRM_URI,
+                        TARGET_URI,
                         1,
                         "",
                         "Target URI"))
@@ -231,21 +72,20 @@ public class CreateServlet extends HttpServlet {
             .append(
                 HTML.fancyText(
                         true,
-                        PRM_JSON_DATA,
+                        JSON_PAYLOAD,
                         10,
                         "",
                         "Paste an unsigned JSON object in the text box or try with the default"))
 
-            .append(parameterBox("Request Parameters", 
-                new StringBuilder()
-                .append(
-                    "<div style=\"display:flex;align-items:center\">")
-                    .append(new SelectMethod().toString())
-               .append(
-                   "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">HTTP Method</div>" +
-                   "<div class=\"defbtn\" onclick=\"restoreRequestDefaults()\">Restore&nbsp;defaults</div></div>")
-               .append(radioButton(PRM_SCHEME, "JSON based request", "true", true, "requestChange(true)"))
-               .append(radioButton(PRM_SCHEME, "URI based request", "false", false, "requestChange(false)"))))
+            .append(
+                HTML.fancyText(
+                        false,
+                        OPT_HEADERS,
+                        4,
+                        "",
+                        "Optional HTTP headers, each on a separate line"))
+
+            .append(getRequestParameters())
 
             .append(parameterBox("Security Parameters",
                 new StringBuilder()
@@ -318,13 +158,13 @@ public class CreateServlet extends HttpServlet {
             "  document.getElementById(id).disabled = false;\n" +
             "}\n" +
             "function setUserData(unconditionally) {\n" +
-            "  let element = document.getElementById('" + PRM_JSON_DATA + "').children[1];\n" +
+            "  let element = document.getElementById('" + JSON_PAYLOAD + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
           .append(HTML.javaScript(TEST_MESSAGE))
           .append("';\n" +
             "  element = document.getElementById('" + PRM_JWS_EXTRA + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '{\\n}';\n" +
-            "  element = document.getElementById('" + PRM_URI + "').children[1];\n" +
+            "  element = document.getElementById('" + TARGET_URI + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
          .append(targetUri)
          .append("';\n" +
@@ -379,6 +219,9 @@ public class CreateServlet extends HttpServlet {
             "function algChange(alg) {\n" +
             "  setParameters(alg, true);\n" +
             "}\n" +
+            "function showJson(show) {\n" +
+            "  document.getElementById('" + JSON_PAYLOAD + "').style.display= show ? 'block' : 'none';\n" +
+            "}\n" +
             "function showCert(show) {\n" +
             "  document.getElementById('" + PRM_CERT_PATH + "').style.display= show ? 'block' : 'none';\n" +
             "}\n" +
@@ -389,7 +232,7 @@ public class CreateServlet extends HttpServlet {
             "  document.getElementById('" + PRM_SECRET_KEY + "').style.display= show ? 'block' : 'none';\n" +
             "}\n" +
             "function setMethod(method) {\n" +
-            "  let s = document.getElementById('" + PRM_METHOD + "');\n" +
+            "  let s = document.getElementById('" + HTTP_METHOD + "');\n" +
             "  for (let i = 0; i < s.options.length; i++) {\n" +
             "    if (s.options[i].text == method) {\n" +
             "      s.options[i].selected = true;\n" +
@@ -397,17 +240,28 @@ public class CreateServlet extends HttpServlet {
             "    }\n" +
             "  }\n" +
             "}\n" +
+            "function showHeaders(show) {\n" +
+            "  document.getElementById('" + OPT_HEADERS + "').style.display= show ? 'block' : 'none';\n" +
+            "}\n" +
             "function restoreRequestDefaults() {\n" +
             "  let radioButtons = document.getElementsByName('" + PRM_SCHEME + "');\n" +
             "  radioButtons[0].checked = true;\n" +
             "  requestChange(true);\n" +
+            "  document.getElementById('" + FLG_HEADERS + "').checked = false;\n" +
+            "  showHeaders(false);\n" +
             "}\n" +
             "function requestChange(jsonRequest) {\n" +
-            "  document.getElementById('" + PRM_JSON_DATA + "').style.display= jsonRequest ? 'block' : 'none';\n" +
+            "  document.getElementById('" + JSON_PAYLOAD + "').style.display= jsonRequest ? 'block' : 'none';\n" +
             "  setMethod(jsonRequest ? '" + DEFAULT_JSON_METHOD + "' : '" + DEFAULT_URI_METHOD + "');\n" +
+            "}\n" +
+            "function headerFlagChange(flag) {\n" +
+            "  showHeaders(flag);\n" +
             "}\n" +
             "window.addEventListener('load', function(event) {\n" +
             "  setParameters(document.getElementById('" + PRM_ALGORITHM + "').value, false);\n" +
+            "  let radioButtons = document.getElementsByName('" + PRM_SCHEME + "');\n" +
+            "  showJson(radioButtons[0].checked);\n" +
+            "  showHeaders(document.getElementById('" + FLG_HEADERS + "').checked);\n" +
             "  setUserData(false);\n" +
             "});\n");
         HTML.standardPage(response, 
@@ -415,38 +269,13 @@ public class CreateServlet extends HttpServlet {
                          html);
     }
     
-    static String getParameter(HttpServletRequest request, String parameter) throws IOException {
-        String string = request.getParameter(parameter);
-        if (string == null) {
-            throw new IOException("Missing data for: "+ parameter);
-        }
-        return string.trim();
-    }
-    
-    static byte[] getBinaryParameter(HttpServletRequest request, String parameter) throws IOException {
-        return getParameter(request, parameter).getBytes("utf-8");
-    }
-
-    static String getTextArea(HttpServletRequest request, String name)
-            throws IOException {
-        String string = getParameter(request, name);
-        StringBuilder s = new StringBuilder();
-        for (char c : string.toCharArray()) {
-            if (c != '\r') {
-                s.append(c);
-            }
-        }
-        return s.toString();
-    }
-
-   
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
          try {
             request.setCharacterEncoding("utf-8");
-            String targetUri = getTextArea(request, PRM_URI);
-            String jsonData = getTextArea(request, PRM_JSON_DATA);
-            String method = getParameter(request, PRM_METHOD);
+            String targetUri = getTextArea(request, TARGET_URI);
+            String jsonData = getTextArea(request, JSON_PAYLOAD);
+            String method = getParameter(request, HTTP_METHOD);
             boolean jsonRequest = new Boolean(getParameter(request, PRM_SCHEME));
             JSONObjectReader additionalHeaderData = JSONParser.parse(getParameter(request, PRM_JWS_EXTRA));
             boolean keyInlining = request.getParameter(FLG_JWK_INLINE) != null;
