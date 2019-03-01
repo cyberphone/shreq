@@ -43,13 +43,13 @@ public class HomeServlet extends HttpServlet {
             "<div style=\"display:flex;justify-content:center\"><table>" +
             "<tr><td><div class=\"multibtn\" " +
             "onclick=\"document.location.href='create'\" " +
-            "title=\"Create JSON signatures\">" +
-            "Create JSON Signatures" +
+            "title=\"Create Signed Request\">" +
+            "Create Signed Request" +
             "</div></td></tr>" +
             "<tr><td><div class=\"multibtn\" " +
-            "onclick=\"document.location.href='verify'\" " +
-            "title=\"Verify JSON signatures\">" +
-            "Verify JSON Signatures" +
+            "onclick=\"document.location.href='validate'\" " +
+            "title=\"Validate Signed Request\">" +
+            "Validate Signed Request" +
             "</div></td></tr>" +
             "</table></div>" +
             "<div class=\"sitefooter\">Privacy/security notice: No user provided data is " +

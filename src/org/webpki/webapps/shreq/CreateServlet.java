@@ -17,12 +17,17 @@
 package org.webpki.webapps.shreq;
 
 import java.io.IOException;
+
 import java.net.URLEncoder;
+
 import java.security.KeyPair;
+
 import java.util.GregorianCalendar;
+
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,19 +36,22 @@ import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
+
 import org.webpki.jose.JOSEAsymKeyHolder;
 import org.webpki.jose.JOSESupport;
 import org.webpki.jose.JOSESymKeyHolder;
+
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
+
 import org.webpki.shreq.SHREQSupport;
+
 import org.webpki.util.Base64;
 import org.webpki.util.Base64URL;
 import org.webpki.util.DebugFormatter;
 import org.webpki.util.PEMDecoder;
-import org.webpki.webutil.ServletUtil;
 
 public class CreateServlet extends HttpServlet {
     
@@ -66,12 +74,57 @@ public class CreateServlet extends HttpServlet {
 
     static final String PRM_ALGORITHM    = "alg";
 
+    static final String PRM_METHOD       = "mtd";
+    static final String PRM_SCHEME       = "scheme";
+
     static final String FLG_CERT_PATH    = "cerflg";
     static final String FLG_JWK_INLINE   = "jwkflg";
+    static final String FLG_IAT_PRESENT  = "iatflg";
     
     static final String DEFAULT_ALG      = "ES256";
     
-    static String defaultTargetUri;
+    static final String TEST_MESSAGE = 
+            "{\n" +
+            "  \"statement\": \"Hello signed world!\",\n" +
+            "  \"otherProperties\": [2e+3, true]\n" +
+            "}";
+    
+    static String _defaultTargetUri;
+    
+    static String getDefaultUri(HttpServletRequest request) {
+        if (_defaultTargetUri == null) {
+            synchronized(CreateServlet.class) {
+                String url = BaseRequestServlet.getUrlFromRequest(request);
+                _defaultTargetUri = url.substring(0, url.indexOf("/shreq/") + 6) +
+                        HomeServlet.PRECONFREQ + "?id=456";
+            }
+        }
+        return _defaultTargetUri;
+    }
+    
+    static final String[] METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "CONNECT"};
+    
+    static class SelectMethod {
+
+        StringBuilder html = new StringBuilder("<select name=\"" +
+                PRM_METHOD + "\">");
+        
+        SelectMethod() {
+            for (String method : METHODS) {
+                html.append("<option value=\"")
+                    .append(method)
+                    .append("\"")
+                    .append(method.equals("POST") ? " selected>" : ">")
+                    .append(method)
+                    .append("</option>");
+            }
+        }
+
+        @Override
+        public String toString() {
+            return html.append("</select>").toString();
+        }
+    }
     
     class SelectAlg {
 
@@ -121,15 +174,47 @@ public class CreateServlet extends HttpServlet {
         return html;
     }
 
+    StringBuilder radioButton(String idName, String text, String value, boolean checked, String onchange) {
+        StringBuilder html = new StringBuilder("<div style=\"display:flex;align-items:center\"><input type=\"radio\" id=\"")
+            .append(idName)
+            .append("\" name=\"")
+            .append(idName)
+            .append("\" value=\"")
+            .append(value)
+            .append("\"");
+        if (checked) {
+            html.append(" checked");
+        }
+        if (onchange != null) {
+            html.append(" onchange=\"")
+                .append(onchange)
+                .append("\"");
+        }
+        html.append("><div style=\"display:inline-block\">")
+            .append(text)
+            .append("</div></div>");
+        return html;
+    }
+    
+    static StringBuilder parameterBox(String header, StringBuilder body) {
+        return new StringBuilder(
+            "<div style=\"display:flex;justify-content:center;margin-top:20pt\">" +
+              "<div class=\"sigparmbox\">" +
+                "<div style=\"display:flex;justify-content:center\">" +
+                  "<div class=\"sigparmhead\">")
+        .append(header)
+        .append(
+                  "</div>" +
+                "</div>")
+        .append(body)
+        .append(
+              "</div>" +
+            "</div>");      
+    }
+
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-        if (defaultTargetUri == null) {
-            synchronized(this) {
-                String url = BaseRequestServlet.getUrlFromRequest(request);
-                defaultTargetUri = url.substring(0, url.indexOf("/shreq/") + 6) +
-                        HomeServlet.PRECONFREQ + "?id=456";
-            }
-        }
+        String targetUri = getDefaultUri(request);
         String selected = "ES256";
         StringBuilder js = new StringBuilder("\"use strict\";\n")
             .append(SHREQService.keyDeclarations);
@@ -141,37 +226,50 @@ public class CreateServlet extends HttpServlet {
                         PRM_URI,
                         1,
                         "",
-                        "Target URI") +
+                        "Target URI"))
+            .append(parameterBox("Request Parmeters", 
+                new StringBuilder()
+                .append(
+                    "<div style=\"display:flex;align-items:center\">")
+                    .append(new SelectMethod().toString())
+               .append(
+                   "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">HTTP Method</div>" +
+                   "<div class=\"defbtn\" onclick=\"restoreDefaults()\">Restore&nbsp;defaults</div></div>")
+               .append(radioButton(PRM_SCHEME, "JSON based request", "true", true, null))
+               .append(radioButton(PRM_SCHEME, "URI based request", "false", false, null))))
+
+            .append(
                 HTML.fancyText(
                         true,
                         PRM_JSON_DATA,
                         10,
                         "",
-                        "Paste an unsigned JSON object in the text box or try with the default") +
-                 "<div style=\"display:flex;justify-content:center;margin-top:20pt\">" +
-                 "<div class=\"sigparmbox\">" +
-                 "<div style=\"display:flex;justify-content:center\">" +
-                   "<div class=\"sigparmhead\">Signature Parameters</div>" +
-                 "</div><div style=\"display:flex;align-items:center\">")
-            .append(new SelectAlg(selected)
-                 .add(MACAlgorithms.HMAC_SHA256)
-                 .add(MACAlgorithms.HMAC_SHA384)
-                 .add(MACAlgorithms.HMAC_SHA512)
-                 .add(AsymSignatureAlgorithms.ECDSA_SHA256)
-                 .add(AsymSignatureAlgorithms.ECDSA_SHA384)
-                 .add(AsymSignatureAlgorithms.ECDSA_SHA512)
-                 .add(AsymSignatureAlgorithms.RSA_SHA256)
-                 .add(AsymSignatureAlgorithms.RSA_SHA384)
-                 .add(AsymSignatureAlgorithms.RSA_SHA512)
-                 .toString())
+                        "Paste an unsigned JSON object in the text box or try with the default"))
+           .append(parameterBox("Security Parameters",
+                new StringBuilder()
+                .append(
+                   "<div style=\"display:flex;align-items:center\">")
+                .append(new SelectAlg(selected)
+                     .add(MACAlgorithms.HMAC_SHA256)
+                     .add(MACAlgorithms.HMAC_SHA384)
+                     .add(MACAlgorithms.HMAC_SHA512)
+                     .add(AsymSignatureAlgorithms.ECDSA_SHA256)
+                     .add(AsymSignatureAlgorithms.ECDSA_SHA384)
+                     .add(AsymSignatureAlgorithms.ECDSA_SHA512)
+                     .add(AsymSignatureAlgorithms.RSA_SHA256)
+                     .add(AsymSignatureAlgorithms.RSA_SHA384)
+                     .add(AsymSignatureAlgorithms.RSA_SHA512)
+                     .toString())
+                .append(
+                    "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">Algorithm</div>" +
+                    "<div class=\"defbtn\" onclick=\"restoreDefaults()\">Restore&nbsp;defaults</div></div>")
+                .append(checkBox(FLG_JWK_INLINE, "Automagically insert public key (JWK)", 
+                                 false, "jwkFlagChange(this.checked)"))
+                .append(checkBox(FLG_CERT_PATH, "Include provided certificate path (X5C)", 
+                                 false, "certFlagChange(this.checked)"))
+                .append(checkBox(FLG_IAT_PRESENT, "Include time stamp (IAT)", 
+                                 true, null))))
             .append(
-                "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">Algorithm</div>" +
-                "<div class=\"defbtn\" onclick=\"restoreDefaults()\">Restore&nbsp;defaults</div></div>")
-            .append(checkBox(FLG_JWK_INLINE, "Automagically insert public key (JWK)", false, "jwkFlagChange(this.checked)"))
-            .append(checkBox(FLG_CERT_PATH, "Include provided certificate path (X5C)", false, "certFlagChange(this.checked)"))
-            .append(
-                "</div>" +
-                "</div>" +
                 "<div style=\"display:flex;justify-content:center\">" +
                 "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +
                 "Create JSON Signature" +
@@ -219,14 +317,14 @@ public class CreateServlet extends HttpServlet {
             "}\n" +
             "function setUserData(unconditionally) {\n" +
             "  let element = document.getElementById('" + PRM_JSON_DATA + "').children[1];\n" +
-            "  if (unconditionally || element.value == '') element.value = '{\\n" +
-            "  \"statement\": \"Hello signed world!\",\\n" +
-            "  \"otherProperties\": [2e+3, true]\\n}';\n" +
+            "  if (unconditionally || element.value == '') element.value = '")
+          .append(HTML.javaScript(TEST_MESSAGE))
+          .append("';\n" +
             "  element = document.getElementById('" + PRM_JWS_EXTRA + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '{\\n}';\n" +
             "  element = document.getElementById('" + PRM_URI + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
-         .append(defaultTargetUri)
+         .append(targetUri)
          .append("';\n" +
             "}\n" +
             "function setParameters(alg, unconditionally) {\n" +
@@ -273,6 +371,7 @@ public class CreateServlet extends HttpServlet {
             "  setParameters('" + DEFAULT_ALG + "', true);\n" +
             "  document.getElementById('" + FLG_CERT_PATH + "').checked = false;\n" +
             "  document.getElementById('" + FLG_JWK_INLINE + "').checked = false;\n" +
+            "  document.getElementById('" + FLG_IAT_PRESENT + "').checked = true;\n" +
             "  setUserData(true);\n" +
             "}\n" +
             "function algChange(alg) {\n" +
@@ -327,18 +426,18 @@ public class CreateServlet extends HttpServlet {
             request.setCharacterEncoding("utf-8");
             String targetUri = getTextArea(request, PRM_URI);
             String jsonData = getTextArea(request, PRM_JSON_DATA);
-            JSONObjectReader reader = JSONParser.parse(jsonData);
-            if (reader.getJSONArrayReader() != null) {
-                throw new IOException("The demo does not support signed arrays");
-            }
+            String method = getParameter(request, PRM_METHOD);
+            boolean jsonRequest = new Boolean(getParameter(request, PRM_SCHEME));
             JSONObjectReader additionalHeaderData = JSONParser.parse(getParameter(request, PRM_JWS_EXTRA));
             boolean keyInlining = request.getParameter(FLG_JWK_INLINE) != null;
             boolean certOption = request.getParameter(FLG_CERT_PATH) != null;
-            String algorithm = getParameter(request, PRM_ALGORITHM);
-            JSONObjectWriter JWS_Protected_Header = new JSONObjectWriter();
+            boolean iatOption = request.getParameter(FLG_IAT_PRESENT) != null;
+            SignatureAlgorithms algorithm = 
+                    JOSESupport.getSignatureAlgorithm(getParameter(request, PRM_ALGORITHM));
 
             // Create the minimal JWS header
-            JWS_Protected_Header.setString(JOSESupport.ALG_JSON, algorithm);
+            JSONObjectWriter JWS_Protected_Header =
+                    JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), algorithm);
 
             // Add any optional (by the user specified) arguments
             for (String key : additionalHeaderData.getProperties()) {
@@ -350,7 +449,7 @@ public class CreateServlet extends HttpServlet {
             String validationKey;
             
             // Symmetric or asymmetric?
-            if (algorithm.startsWith("HS")) {
+            if (algorithm.isSymmetric()) {
                 validationKey = getParameter(request, PRM_SECRET_KEY);
                 keyHolder = new JOSESymKeyHolder(DebugFormatter.getByteArrayFromHex(validationKey));
             } else {
@@ -378,51 +477,67 @@ public class CreateServlet extends HttpServlet {
                 }
                 keyHolder = new JOSEAsymKeyHolder(keyPair.getPrivate());
             }
-
-            // Creating JWS data to be signed
-            JSONObjectWriter writer = new JSONObjectWriter(reader);
-            JSONObjectWriter shreqObject = 
-                    SHREQSupport.createJSONRequestHeader(targetUri,
-                                                         "POST",
-                                                         new GregorianCalendar());
-            writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
-            byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-
-            // Sign it using the provided algorithm and key
-            String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
-                                                              JWS_Payload,
-                                                              keyHolder,
-                                                              true);
-            keyHolder = null;  // Nullify it after use
-
-            // Create the completed object which now is in "writer"
-            shreqObject.setString(SHREQSupport.JWS, jwsString);
-            
-            String signedJSONRequest = writer.serializeToString(JSONOutputFormats.NORMALIZED);
-            
-            // How things should appear in a "regular" JWS
-            if (SHREQService.logging) {
-                logger.info(jwsString.substring(0, jwsString.lastIndexOf('.')) +
-                            Base64URL.encode(JWS_Payload) +
-                            jwsString.substring(jwsString.lastIndexOf('.')));
+            String signedJSONRequest;
+            if (jsonRequest) {
+                // Creating JWS data to be signed
+                JSONObjectReader reader = JSONParser.parse(jsonData);
+                if (reader.getJSONArrayReader() != null) {
+                    throw new IOException("The demo does not support signed arrays");
+                }
+                JSONObjectWriter writer = new JSONObjectWriter(reader);
+                JSONObjectWriter shreqObject = 
+                        SHREQSupport.createJSONRequestHeader(targetUri,
+                                                             method,
+                                                             iatOption ? new GregorianCalendar() : null);
+                writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
+                byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+        
+                // Sign it using the provided algorithm and key
+                String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                                                                  JWS_Payload,
+                                                                  keyHolder,
+                                                                  true);
+                keyHolder = null;  // Nullify it after use
+        
+                // Create the completed object which now is in "writer"
+                shreqObject.setString(SHREQSupport.JWS, jwsString);
+                
+                signedJSONRequest = writer.serializeToString(JSONOutputFormats.NORMALIZED);
+                
+                // The following is just for the demo.  That is, we want to preserve
+                // the original ("untouched") JSON data for educational purposes.
+                int i = signedJSONRequest.lastIndexOf("\"" + SHREQSupport.SHREQ_LABEL);
+                if (signedJSONRequest.charAt(i - 1) == ',') {
+                    i--;
+                }
+                int j = jsonData.lastIndexOf("}");
+                signedJSONRequest = jsonData.substring(0, j) + 
+                        signedJSONRequest.substring(i, signedJSONRequest.length() - 1) +
+                        jsonData.substring(j);
+            } else {
+                signedJSONRequest="";
+                JSONObjectWriter writer = 
+                        SHREQSupport.createURIRequestPayload(targetUri,
+                                                             method,
+                                                             iatOption ? new GregorianCalendar() : null);
+                byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.NORMALIZED);
+                String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                                                                  JWS_Payload,
+                                                                  keyHolder,
+                                                                  false);
+                targetUri += (targetUri.contains("?") ?
+                        '&' : '?') + SHREQSupport.SHREQ_LABEL + "=" + jwsString;
             }
-
-            // The following is just for the demo.  That is, we want to preserve
-            // the original ("untouched") JSON data for educational purposes.
-            int i = signedJSONRequest.lastIndexOf("\"" + SHREQSupport.SHREQ_LABEL);
-            if (signedJSONRequest.charAt(i - 1) == ',') {
-                i--;
-            }
-            int j = jsonData.lastIndexOf("}");
-            signedJSONRequest = jsonData.substring(0, j) + 
-                    signedJSONRequest.substring(i, signedJSONRequest.length() - 1) +
-                    jsonData.substring(j);
 
             // We terminate by validating the signature as well
             request.getRequestDispatcher("validate?" +
                 ValidateServlet.JWS_OBJECT + 
                 "=" +
                 URLEncoder.encode(signedJSONRequest, "utf-8") +
+                "&" +
+                ValidateServlet.JWS_URI + 
+                "=" +
+                URLEncoder.encode(targetUri, "utf-8") +
                 "&" +
                 ValidateServlet.JWS_VALIDATION_KEY + 
                 "=" +

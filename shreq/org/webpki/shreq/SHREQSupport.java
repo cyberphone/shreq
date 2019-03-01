@@ -17,9 +17,10 @@
 package org.webpki.shreq;
 
 import java.io.IOException;
-
 import java.util.GregorianCalendar;
 
+import org.webpki.crypto.HashAlgorithms;
+import org.webpki.crypto.MACAlgorithms;
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONObjectWriter;
 
@@ -66,7 +67,7 @@ public class SHREQSupport {
         return new JSONObjectWriter()
             .setString(URI, uri)
 
-            // If the method is "PORT" this element MAY be skipped
+            // If the method is "POST" this element MAY be skipped
             .setDynamic((wr) -> method == null ? wr : wr.setString(METHOD, method))
 
             // If the "payload" already has a "DateTime" object this element MAY be skipped
@@ -98,5 +99,19 @@ public class SHREQSupport {
         // To be defined and implemented
         // The famous "no-op" algorithm :)
         return uri;
+    }
+
+    public static JSONObjectWriter createURIRequestPayload(String targetUri,
+                                                           String method,
+                                                           GregorianCalendar issuetAt) throws IOException {
+        return new JSONObjectWriter()
+            .setBinary(URI, HashAlgorithms.SHA256.digest(normalizeTargetURI(targetUri).getBytes("utf-8")))
+    
+            // If the method is "GET" this element MAY be skipped
+            .setDynamic((wr) -> method == null ? wr : wr.setString(METHOD, method))
+    
+            // This element MAY be skipped
+            .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(ISSUED_AT_TIME, 
+                                                                    issuetAt.getTimeInMillis() / 1000));
     }
 }

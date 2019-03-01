@@ -18,8 +18,10 @@ package org.webpki.webapps.shreq;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.util.GregorianCalendar;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -34,8 +36,10 @@ import org.webpki.crypto.CertificateInfo;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 import org.webpki.json.JSONObjectReader;
+import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
+import org.webpki.jose.JOSEAsymKeyHolder;
 import org.webpki.jose.JOSEAsymSignatureValidator;
 import org.webpki.jose.JOSEHmacValidator;
 import org.webpki.jose.JOSESupport;
@@ -55,8 +59,12 @@ public class ValidateServlet extends HttpServlet {
 
     static final String JWS_VALIDATION_KEY = "vkey";
     
+    static final String JWS_URI            = "uri";
+    
     static final String JWS_SIGN_LABL      = "siglbl";
     
+    static String sampleRequest;
+
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
         try {
@@ -67,11 +75,15 @@ public class ValidateServlet extends HttpServlet {
             logger.info("JSON Signature Verification Entered");
             // Get the two input data items
             String signedJsonObject = CreateServlet.getParameter(request, JWS_OBJECT);
+            boolean jsonRequest = signedJsonObject.length() > 0;
+            String uri = CreateServlet.getParameter(request, JWS_URI);
             String validationKey = CreateServlet.getParameter(request, JWS_VALIDATION_KEY);
             String requestMethod = CreateServlet.getParameter(request, JWS_SIGN_LABL);
 
             // Parse the JSON data
-            JSONObjectReader parsedObject = JSONParser.parse(signedJsonObject);
+            StringBuilder html = new StringBuilder();
+            if (jsonRequest) {
+                JSONObjectReader parsedObject = JSONParser.parse(signedJsonObject);
 /*
             
             // Create a pretty-printed JSON object without canonicalization
@@ -183,7 +195,11 @@ public class ValidateServlet extends HttpServlet {
                                           "Core certificate data"));
             }
 */
-StringBuilder html = new StringBuilder(parsedObject.serializeToString(JSONOutputFormats.PRETTY_HTML));
+                html.append(parsedObject.serializeToString(JSONOutputFormats.PRETTY_HTML));
+            } else {
+                html.append("hi");
+            }
+            html.append(uri);
             // Finally, print it out
             HTML.standardPage(response, null, html.append("<div style=\"padding:10pt\"></div>"));
         } catch (Exception e) {
@@ -194,24 +210,66 @@ StringBuilder html = new StringBuilder(parsedObject.serializeToString(JSONOutput
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
+        if (sampleRequest == null) {
+            synchronized(this) {
+                JSONObjectWriter JWS_Protected_Header =
+                        JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
+                                                          AsymSignatureAlgorithms.ECDSA_SHA256);
+                JSONObjectWriter writer = 
+                        new JSONObjectWriter(JSONParser.parse(CreateServlet.TEST_MESSAGE));
+                
+                JSONObjectWriter shreqObject = 
+                        SHREQSupport.createJSONRequestHeader(CreateServlet.getDefaultUri(request),
+                                                             "POST",
+                                                             new GregorianCalendar());
+                writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
+                byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+
+                // Sign it using the provided algorithm and key
+                PrivateKey privateKey = 
+                        SHREQService.predefinedKeyPairs
+                            .get(AsymSignatureAlgorithms.ECDSA_SHA256
+                                    .getAlgorithmId(AlgorithmPreferences.JOSE)).getPrivate();
+                try {
+                    String jwsString = 
+                            JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                                                           JWS_Payload,
+                                                           new JOSEAsymKeyHolder(privateKey),
+                                                           true);
+                    // Create the completed object which now is in "writer"
+                    shreqObject.setString(SHREQSupport.JWS, jwsString);
+                    
+                    sampleRequest = writer.serializeToString(JSONOutputFormats.PRETTY_PRINT);
+
+                } catch (GeneralSecurityException e) {
+                    sampleRequest = "Internal error - Call admin";
+                }
+            }
+        }
         HTML.standardPage(response, null, new StringBuilder(
                 "<form name=\"shoot\" method=\"POST\" action=\"validate\">" +
-                "<div class=\"header\">Testing JSON Signatures</div>")
+                "<div class=\"header\">SHREQ Message Validation</div>")
             .append(HTML.fancyText(true,
-                JWS_OBJECT,
-                10, 
-                HTML.encode(SHREQService.sampleSignature),
-                "Paste a signed JSON object in the text box or try with the default"))
-            .append(HTML.fancyText(true,
-                JWS_VALIDATION_KEY,
-                4, 
-                HTML.encode(SHREQService.sampleKey),
-"Validation key (secret key in hexadecimal or public key in PEM or &quot;plain&quot; JWK format)"))
+                JWS_URI,
+                1, 
+                HTML.encode(CreateServlet.getDefaultUri(request)),
+                "Target URI"))
             .append(HTML.fancyText(true,
                 JWS_SIGN_LABL,
                 1, 
                 HTML.encode("POST"),
                 "Anticipated method"))
+            .append(HTML.fancyText(true,
+                JWS_OBJECT,
+                10, 
+                HTML.encode(sampleRequest),
+                "Paste a signed JSON request in the text box or try with the default"))
+            .append(HTML.fancyText(true,
+                JWS_VALIDATION_KEY,
+                4, 
+                HTML.encode(SHREQService.sampleKey),
+"Validation key (secret key in hexadecimal or public key in PEM or &quot;plain&quot; JWK format)"))
+
             .append(
                 "<div style=\"display:flex;justify-content:center\">" +
                 "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +

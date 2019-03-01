@@ -82,8 +82,8 @@ public class HTML {
             " onclick=\"document.location.href='home'\" title=\"Home of the lab...\"/>" +
             "<div style=\"display:flex;padding-bottom:10pt\">" +
             "<a href=\"https://github.com/cyberphone/shreq\" target=\"_blank\"><img src=\"images/shreq.svg\" " +
-            "style=\"height:25pt\"" +
-             "title=\"Specifications, source code, etc.\"/></a>" +
+            "style=\"height:25pt\" " +
+            "title=\"Specifications, source code, etc.\"/></a>" +
             "</div>" +
             "</div>")
          .append(box).append("</body></html>");
@@ -141,15 +141,6 @@ public class HTML {
                             String javaScript,
                             StringBuilder html) throws IOException, ServletException {
         HTML.output(response, HTML.getHTML(javaScript, html.toString()));
-    }
-
-    public static void noWebCryptoPage(HttpServletResponse response)
-            throws IOException, ServletException {
-        HTML.output(
-                response,
-                HTML.getHTML(
-                        null,
-                        "Your Browser Doesn't Support WebCrypto :-("));
     }
 
     static String javaScript(String string) {

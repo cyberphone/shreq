@@ -46,8 +46,6 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
 
     static Logger logger = Logger.getLogger(SHREQService.class.getName());
 
-    static String sampleSignature;
-    
     static String sampleKey;
     
     static String keyDeclarations;
@@ -145,9 +143,8 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
         initProperties(event);
         try {
             /////////////////////////////////////////////////////////////////////////////////////////////
-            // Sample signature for verification
+            // Sample key for verification
             /////////////////////////////////////////////////////////////////////////////////////////////
-     //       sampleSignature = getEmbeddedResourceString("sample-signature.json");
             sampleKey = getEmbeddedResourceString("p256publickey.pem").trim();
 
             /////////////////////////////////////////////////////////////////////////////////////////////
