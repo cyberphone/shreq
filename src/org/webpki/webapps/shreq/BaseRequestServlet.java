@@ -91,6 +91,10 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
                (request.getQueryString() == null ? "" : "?" + request.getQueryString());
     }
     
+    protected boolean enforceTimeStamp() {
+        return false;
+    }
+    
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -138,6 +142,11 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             // Core Request Data Successfully Collected - Validate!
             validationCore.validate(this);
             
+            // Optional test
+            if (enforceTimeStamp()) {
+                validationCore.enforceTimeStamp(5);  // +-5 minutes
+            }
+
             // No exceptions => We did it!
             response.resetBuffer();
             response.setStatus(HttpServletResponse.SC_OK);

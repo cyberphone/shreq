@@ -19,8 +19,8 @@ package org.webpki.shreq;
 import java.io.IOException;
 import java.util.GregorianCalendar;
 
-import org.webpki.crypto.HashAlgorithms;
-import org.webpki.crypto.MACAlgorithms;
+import org.webpki.crypto.SignatureAlgorithms;
+
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONObjectWriter;
 
@@ -31,6 +31,7 @@ public class SHREQSupport {
     public static final String SHREQ_LABEL    = "$secinf$";
     
     public static final String URI            = "uri";
+    public static final String HSH_NRM_URI    = "hni";
     public static final String METHOD         = "mtd";
     public static final String ISSUED_AT_TIME = "iat";
     public static final String JWS            = "jws";
@@ -74,17 +75,22 @@ public class SHREQSupport {
             .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(ISSUED_AT_TIME, 
                                                                     issuetAt.getTimeInMillis() / 1000));
     }
+    
+    public static GregorianCalendar getOptionalIssuedAt(JSONObjectReader json) throws IOException {
+        if (json.hasProperty(ISSUED_AT_TIME)) {
+            GregorianCalendar issuedAt = new GregorianCalendar();
+            issuedAt.setTimeInMillis(json.getInt53(ISSUED_AT_TIME) * 1000);
+            return issuedAt;
+        }
+        return null;
+    }
 
     public static ReceivedJSONRequestHeader getJSONRequestHeader(JSONObjectReader parsedObject)
     throws IOException {
         JSONObjectReader jsonHeader = parsedObject.getObject(SHREQ_LABEL);
         ReceivedJSONRequestHeader decodedHeader = new ReceivedJSONRequestHeader();
         decodedHeader.normalizedURI = normalizeTargetURI(jsonHeader.getString(URI));
-        if (jsonHeader.hasProperty(ISSUED_AT_TIME)) {
-            GregorianCalendar issuedAt = new GregorianCalendar();
-            issuedAt.setTimeInMillis(jsonHeader.getInt53(ISSUED_AT_TIME) * 1000);
-            decodedHeader.issuedAt = issuedAt;
-        }
+        decodedHeader.issuedAt = getOptionalIssuedAt(jsonHeader);
         decodedHeader.method = 
                 jsonHeader.getStringConditional(METHOD, 
                                                 DEFAULT_JSON_REQUEST_METHOD);
@@ -101,11 +107,18 @@ public class SHREQSupport {
         return uri;
     }
 
+    static byte[] getDigestedAndNormalizedURI(String uri, 
+                                              SignatureAlgorithms signatureAlgorithm) throws IOException {
+        return signatureAlgorithm.getDigestAlgorithm().digest(normalizeTargetURI(uri).getBytes("utf-8"));
+    }
+
     public static JSONObjectWriter createURIRequestPayload(String targetUri,
                                                            String method,
-                                                           GregorianCalendar issuetAt) throws IOException {
+                                                           GregorianCalendar issuetAt,
+                                                           SignatureAlgorithms signatureAlgorithm) throws IOException {
         return new JSONObjectWriter()
-            .setBinary(URI, HashAlgorithms.SHA256.digest(normalizeTargetURI(targetUri).getBytes("utf-8")))
+            .setBinary(HSH_NRM_URI, getDigestedAndNormalizedURI(targetUri,
+                                                                signatureAlgorithm))
     
             // If the method is "GET" this element MAY be skipped
             .setDynamic((wr) -> method == null ? wr : wr.setString(METHOD, method))

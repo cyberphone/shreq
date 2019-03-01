@@ -55,13 +55,13 @@ public class ValidateServlet extends HttpServlet {
     static Logger logger = Logger.getLogger(ValidateServlet.class.getName());
 
     // HTML form arguments
-    static final String JWS_OBJECT         = "jws";
+    static final String JSON_PAYLOAD         = "jws";
 
     static final String JWS_VALIDATION_KEY = "vkey";
     
-    static final String JWS_URI            = "uri";
+    static final String TARGET_URI            = "uri";
     
-    static final String JWS_SIGN_LABL      = "siglbl";
+    static final String HTTP_METHOD      = "siglbl";
     
     static String sampleRequest;
 
@@ -74,11 +74,11 @@ public class ValidateServlet extends HttpServlet {
             }
             logger.info("JSON Signature Verification Entered");
             // Get the two input data items
-            String signedJsonObject = CreateServlet.getParameter(request, JWS_OBJECT);
+            String signedJsonObject = CreateServlet.getParameter(request, JSON_PAYLOAD);
             boolean jsonRequest = signedJsonObject.length() > 0;
-            String uri = CreateServlet.getParameter(request, JWS_URI);
+            String uri = CreateServlet.getParameter(request, TARGET_URI);
             String validationKey = CreateServlet.getParameter(request, JWS_VALIDATION_KEY);
-            String requestMethod = CreateServlet.getParameter(request, JWS_SIGN_LABL);
+            String requestMethod = CreateServlet.getParameter(request, HTTP_METHOD);
 
             // Parse the JSON data
             StringBuilder html = new StringBuilder();
@@ -250,17 +250,17 @@ public class ValidateServlet extends HttpServlet {
                 "<form name=\"shoot\" method=\"POST\" action=\"validate\">" +
                 "<div class=\"header\">SHREQ Message Validation</div>")
             .append(HTML.fancyText(true,
-                JWS_URI,
+                TARGET_URI,
                 1, 
                 HTML.encode(CreateServlet.getDefaultUri(request)),
                 "Target URI"))
             .append(HTML.fancyText(true,
-                JWS_SIGN_LABL,
+                HTTP_METHOD,
                 1, 
                 HTML.encode("POST"),
                 "Anticipated method"))
             .append(HTML.fancyText(true,
-                JWS_OBJECT,
+                JSON_PAYLOAD,
                 10, 
                 HTML.encode(sampleRequest),
                 "Paste a signed JSON request in the text box or try with the default"))

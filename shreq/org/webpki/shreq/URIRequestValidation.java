@@ -22,6 +22,11 @@ import java.security.GeneralSecurityException;
 
 import java.util.LinkedHashMap;
 
+import org.webpki.json.JSONObjectReader;
+import org.webpki.json.JSONParser;
+
+import org.webpki.util.ArrayUtil;
+
 public class URIRequestValidation extends ValidationCore {
     
     static final String QUERY_STRING = SHREQSupport.SHREQ_LABEL + "=";
@@ -32,13 +37,6 @@ public class URIRequestValidation extends ValidationCore {
                                 LinkedHashMap<String, String> headerMap) {
         super(targetUri, targetMethod, headerMap);
     }
-
-
-    @Override
-    protected void createJWS_Payload() throws IOException {
-        JWS_Payload = (targetMethod + "," + targetUri).getBytes("utf-8");
-    }
-
 
     @Override
     protected void validateImplementation() throws IOException,
@@ -59,6 +57,23 @@ public class URIRequestValidation extends ValidationCore {
         }
         decodeJWS_String(jwsString, false);
         
+        JSONObjectReader shreqData = JSONParser.parse(JWS_Payload);
+        
+        if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.HSH_NRM_URI),
+                               SHREQSupport.getDigestedAndNormalizedURI(targetUri,
+                                                                        signatureAlgorithm))) {
+            error("URI mismatch");
+        }
+        
+        String declaredMethod = 
+                shreqData.getStringConditional(SHREQSupport.METHOD,
+                                               SHREQSupport.DEFAULT_URI_REQUEST_METHOD);
+        if (!targetMethod.equals(declaredMethod)){
+            error("Declared Method=" + declaredMethod + " Actual Method=" + targetMethod);
+ 
+        }
+        
+        getOptionalIssuedAt(SHREQSupport.getOptionalIssuedAt(shreqData));
         // 5.2:5
         // TBD
         

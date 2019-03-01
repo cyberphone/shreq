@@ -41,8 +41,18 @@
     </servlet>
 
     <servlet>
+        <servlet-name>ExtConfReq2Servlet</servlet-name>
+        <servlet-class>org.webpki.webapps.shreq.ExtConfReq2Servlet</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>PreConfReqServlet</servlet-name>
         <servlet-class>org.webpki.webapps.shreq.PreConfReqServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>PreConfReq2Servlet</servlet-name>
+        <servlet-class>org.webpki.webapps.shreq.PreConfReq2Servlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -66,10 +76,20 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>ExtConfReq2Servlet</servlet-name>
+        <url-pattern>/extconfreq2</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>PreConfReqServlet</servlet-name>
         <url-pattern>/preconfreq</url-pattern>
     </servlet-mapping>
 
+
+    <servlet-mapping>
+        <servlet-name>PreConfReq2Servlet</servlet-name>
+        <url-pattern>/preconfreq2</url-pattern>
+    </servlet-mapping>
 
     <security-constraint>
       <web-resource-collection>

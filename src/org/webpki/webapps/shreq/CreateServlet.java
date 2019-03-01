@@ -49,7 +49,6 @@ import org.webpki.json.JSONParser;
 import org.webpki.shreq.SHREQSupport;
 
 import org.webpki.util.Base64;
-import org.webpki.util.Base64URL;
 import org.webpki.util.DebugFormatter;
 import org.webpki.util.PEMDecoder;
 
@@ -81,7 +80,9 @@ public class CreateServlet extends HttpServlet {
     static final String FLG_JWK_INLINE   = "jwkflg";
     static final String FLG_IAT_PRESENT  = "iatflg";
     
-    static final String DEFAULT_ALG      = "ES256";
+    static final String DEFAULT_ALGORITHM   = "ES256";
+    static final String DEFAULT_JSON_METHOD = "POST";
+    static final String DEFAULT_URI_METHOD  = "GET";
     
     static final String TEST_MESSAGE = 
             "{\n" +
@@ -107,7 +108,7 @@ public class CreateServlet extends HttpServlet {
     static class SelectMethod {
 
         StringBuilder html = new StringBuilder("<select name=\"" +
-                PRM_METHOD + "\">");
+                PRM_METHOD + "\" id=\"" + PRM_METHOD + "\">");
         
         SelectMethod() {
             for (String method : METHODS) {
@@ -174,11 +175,9 @@ public class CreateServlet extends HttpServlet {
         return html;
     }
 
-    StringBuilder radioButton(String idName, String text, String value, boolean checked, String onchange) {
-        StringBuilder html = new StringBuilder("<div style=\"display:flex;align-items:center\"><input type=\"radio\" id=\"")
-            .append(idName)
-            .append("\" name=\"")
-            .append(idName)
+    StringBuilder radioButton(String name, String text, String value, boolean checked, String onchange) {
+        StringBuilder html = new StringBuilder("<div style=\"display:flex;align-items:center\"><input type=\"radio\" name=\"")
+            .append(name)
             .append("\" value=\"")
             .append(value)
             .append("\"");
@@ -220,23 +219,14 @@ public class CreateServlet extends HttpServlet {
             .append(SHREQService.keyDeclarations);
         StringBuilder html = new StringBuilder(
                 "<form name=\"shoot\" method=\"POST\" action=\"create\">" +
-                "<div class=\"header\">SHREQ Message Creation</div>" +
+                "<div class=\"header\">SHREQ Message Creation</div>")
+            .append(
                 HTML.fancyText(
                         true,
                         PRM_URI,
                         1,
                         "",
                         "Target URI"))
-            .append(parameterBox("Request Parmeters", 
-                new StringBuilder()
-                .append(
-                    "<div style=\"display:flex;align-items:center\">")
-                    .append(new SelectMethod().toString())
-               .append(
-                   "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">HTTP Method</div>" +
-                   "<div class=\"defbtn\" onclick=\"restoreDefaults()\">Restore&nbsp;defaults</div></div>")
-               .append(radioButton(PRM_SCHEME, "JSON based request", "true", true, null))
-               .append(radioButton(PRM_SCHEME, "URI based request", "false", false, null))))
 
             .append(
                 HTML.fancyText(
@@ -245,7 +235,19 @@ public class CreateServlet extends HttpServlet {
                         10,
                         "",
                         "Paste an unsigned JSON object in the text box or try with the default"))
-           .append(parameterBox("Security Parameters",
+
+            .append(parameterBox("Request Parameters", 
+                new StringBuilder()
+                .append(
+                    "<div style=\"display:flex;align-items:center\">")
+                    .append(new SelectMethod().toString())
+               .append(
+                   "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">HTTP Method</div>" +
+                   "<div class=\"defbtn\" onclick=\"restoreRequestDefaults()\">Restore&nbsp;defaults</div></div>")
+               .append(radioButton(PRM_SCHEME, "JSON based request", "true", true, "requestChange(true)"))
+               .append(radioButton(PRM_SCHEME, "URI based request", "false", false, "requestChange(false)"))))
+
+            .append(parameterBox("Security Parameters",
                 new StringBuilder()
                 .append(
                    "<div style=\"display:flex;align-items:center\">")
@@ -262,7 +264,7 @@ public class CreateServlet extends HttpServlet {
                      .toString())
                 .append(
                     "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">Algorithm</div>" +
-                    "<div class=\"defbtn\" onclick=\"restoreDefaults()\">Restore&nbsp;defaults</div></div>")
+                    "<div class=\"defbtn\" onclick=\"restoreSecurityDefaults()\">Restore&nbsp;defaults</div></div>")
                 .append(checkBox(FLG_JWK_INLINE, "Automagically insert public key (JWK)", 
                                  false, "jwkFlagChange(this.checked)"))
                 .append(checkBox(FLG_CERT_PATH, "Include provided certificate path (X5C)", 
@@ -272,7 +274,7 @@ public class CreateServlet extends HttpServlet {
             .append(
                 "<div style=\"display:flex;justify-content:center\">" +
                 "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +
-                "Create JSON Signature" +
+                "Create Signed Request" +
                 "</div>" +
                 "</div>")
             .append(
@@ -360,15 +362,15 @@ public class CreateServlet extends HttpServlet {
             "    document.getElementById('" + FLG_JWK_INLINE + "').checked = false;\n" +
             "  }\n" +
             "}\n" +
-            "function restoreDefaults() {\n" +
+            "function restoreSecurityDefaults() {\n" +
             "  let s = document.getElementById('" + PRM_ALGORITHM + "');\n" +
             "  for (let i = 0; i < s.options.length; i++) {\n" +
-            "    if (s.options[i].text == '" + DEFAULT_ALG + "') {\n" +
+            "    if (s.options[i].text == '" + DEFAULT_ALGORITHM + "') {\n" +
             "      s.options[i].selected = true;\n" +
             "      break;\n" +
             "    }\n" +
             "  }\n" +
-            "  setParameters('" + DEFAULT_ALG + "', true);\n" +
+            "  setParameters('" + DEFAULT_ALGORITHM + "', true);\n" +
             "  document.getElementById('" + FLG_CERT_PATH + "').checked = false;\n" +
             "  document.getElementById('" + FLG_JWK_INLINE + "').checked = false;\n" +
             "  document.getElementById('" + FLG_IAT_PRESENT + "').checked = true;\n" +
@@ -385,6 +387,24 @@ public class CreateServlet extends HttpServlet {
             "}\n" +
             "function showSec(show) {\n" +
             "  document.getElementById('" + PRM_SECRET_KEY + "').style.display= show ? 'block' : 'none';\n" +
+            "}\n" +
+            "function setMethod(method) {\n" +
+            "  let s = document.getElementById('" + PRM_METHOD + "');\n" +
+            "  for (let i = 0; i < s.options.length; i++) {\n" +
+            "    if (s.options[i].text == method) {\n" +
+            "      s.options[i].selected = true;\n" +
+            "      break;\n" +
+            "    }\n" +
+            "  }\n" +
+            "}\n" +
+            "function restoreRequestDefaults() {\n" +
+            "  let radioButtons = document.getElementsByName('" + PRM_SCHEME + "');\n" +
+            "  radioButtons[0].checked = true;\n" +
+            "  requestChange(true);\n" +
+            "}\n" +
+            "function requestChange(jsonRequest) {\n" +
+            "  document.getElementById('" + PRM_JSON_DATA + "').style.display= jsonRequest ? 'block' : 'none';\n" +
+            "  setMethod(jsonRequest ? '" + DEFAULT_JSON_METHOD + "' : '" + DEFAULT_URI_METHOD + "');\n" +
             "}\n" +
             "window.addEventListener('load', function(event) {\n" +
             "  setParameters(document.getElementById('" + PRM_ALGORITHM + "').value, false);\n" +
@@ -519,7 +539,8 @@ public class CreateServlet extends HttpServlet {
                 JSONObjectWriter writer = 
                         SHREQSupport.createURIRequestPayload(targetUri,
                                                              method,
-                                                             iatOption ? new GregorianCalendar() : null);
+                                                             iatOption ? new GregorianCalendar() : null,
+                                                             algorithm);
                 byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.NORMALIZED);
                 String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
                                                                   JWS_Payload,
@@ -531,11 +552,11 @@ public class CreateServlet extends HttpServlet {
 
             // We terminate by validating the signature as well
             request.getRequestDispatcher("validate?" +
-                ValidateServlet.JWS_OBJECT + 
+                ValidateServlet.JSON_PAYLOAD + 
                 "=" +
                 URLEncoder.encode(signedJSONRequest, "utf-8") +
                 "&" +
-                ValidateServlet.JWS_URI + 
+                ValidateServlet.TARGET_URI + 
                 "=" +
                 URLEncoder.encode(targetUri, "utf-8") +
                 "&" +
@@ -543,9 +564,9 @@ public class CreateServlet extends HttpServlet {
                 "=" +
                 URLEncoder.encode(validationKey, "utf-8") +
                 "&" +
-                ValidateServlet.JWS_SIGN_LABL + 
+                ValidateServlet.HTTP_METHOD + 
                 "=" +
-                URLEncoder.encode("POST", "utf-8"))
+                URLEncoder.encode(method, "utf-8"))
                     .forward(request, response);
         } catch (Exception e) {
             HTML.errorPage(response, e);

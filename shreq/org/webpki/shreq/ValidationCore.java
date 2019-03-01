@@ -21,10 +21,10 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
 
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 
 import java.util.logging.Logger;
-
 
 import org.webpki.crypto.SignatureAlgorithms;
 
@@ -37,10 +37,6 @@ import org.webpki.util.Base64URL;
 
 
 public abstract class ValidationCore {
-    
-    String targetUri;
-    
-    String targetMethod;
     
     protected LinkedHashMap<String, String> headerMap;
 
@@ -55,6 +51,18 @@ public abstract class ValidationCore {
     private boolean validationMode;
     
     private ValidationKeyService validationKeyService;
+    
+    protected String targetUri;
+    
+    protected String targetMethod;
+    
+    protected GregorianCalendar issuedAt;
+    
+    protected SignatureAlgorithms signatureAlgorithm;
+    
+    protected String keyId;
+    
+    protected PublicKey publicKey;
 
     protected ValidationCore(String targetUri,
                              String targetMethod,
@@ -66,8 +74,6 @@ public abstract class ValidationCore {
 
     protected static Logger logger = Logger.getLogger(ValidationCore.class.getName());
 
-    protected abstract void createJWS_Payload() throws IOException;
-    
     protected abstract void validateImplementation() throws IOException, GeneralSecurityException;
     
     public void validate(ValidationKeyService validationKeyService) throws IOException,
@@ -79,6 +85,17 @@ public abstract class ValidationCore {
 
     public boolean isValidating() {
         return validationMode;
+    }
+    
+    public void enforceTimeStamp(int marginInMinutes) throws IOException {
+        if (issuedAt == null) {
+            error("Missing time stamp");
+        }
+        long limit = marginInMinutes * 60000;
+        long diff = new GregorianCalendar().getTimeInMillis() - issuedAt.getTimeInMillis();
+        if (diff > limit || -diff > limit) {
+            error("Time stamp outside of " + marginInMinutes + " minute limit");
+        }
     }
 
     public String printCoreData() throws IOException {
@@ -96,12 +113,23 @@ public abstract class ValidationCore {
         return coreData.toString();
     }
 
+    public JSONObjectReader getJwsProtectedHeader() {
+        return JWS_Protected_Header;
+    }
+
     protected void error(String what) throws IOException {
         throw new IOException(what);
     }
+    
+    protected void getOptionalTime(JSONObjectReader json) {
+        if (json.hasProperty(SHREQSupport.ISSUED_AT_TIME)) {
+            
+        }
+    }
 
     // 6.6
-    protected void decodeJWS_String(String jwsString, boolean detached) throws IOException {
+    protected void decodeJWS_String(String jwsString, boolean detached) throws IOException,
+                                                                               GeneralSecurityException {
         // :1
         int endOfHeader = jwsString.indexOf('.');
         int lastDot = jwsString.lastIndexOf('.');
@@ -120,11 +148,23 @@ public abstract class ValidationCore {
         
         // :3-4
         JWS_Protected_Header = JSONParser.parse(Base64URL.decode(jwsProtectedHeaderB64U));
+        signatureAlgorithm = JOSESupport.getSignatureAlgorithm(JWS_Protected_Header);
+        keyId = JWS_Protected_Header.hasProperty(JOSESupport.KID_JSON) ?
+                JOSESupport.getKeyId(JWS_Protected_Header) : null;
+        publicKey = JWS_Protected_Header.hasProperty(JOSESupport.JWK_JSON) ?
+                JOSESupport.getPublicKey(JWS_Protected_Header) : null;
+        if (publicKey != null && signatureAlgorithm.isSymmetric()) {
+            throw new GeneralSecurityException("Public key and HMAC algorithm");
+        }
+
         
         // :5-6
         JWS_Signature = Base64URL.decode(jwsString.substring(lastDot + 1));
     }
 
+    void getOptionalIssuedAt(GregorianCalendar issuedAt) {
+        this.issuedAt = issuedAt;
+    }
 
     // 6.8
     protected void validateHeaderDigest(JSONObjectReader headerObject) throws IOException {
@@ -134,20 +174,10 @@ public abstract class ValidationCore {
     // 6.9
     private void validateSignature() throws IOException, GeneralSecurityException {
         // 4.2:10 or 5.2:5
-        createJWS_Payload();
         
         validationMode = true;
         
         // 6.9:1
-        SignatureAlgorithms signatureAlgorithm = JOSESupport.getSignatureAlgorithm(JWS_Protected_Header);
-        String keyId = JWS_Protected_Header.hasProperty(JOSESupport.KID_JSON) ?
-                JOSESupport.getKeyId(JWS_Protected_Header) : null;
-        PublicKey publicKey = JWS_Protected_Header.hasProperty(JOSESupport.JWK_JSON) ?
-                JOSESupport.getPublicKey(JWS_Protected_Header) : null;
-        if (publicKey != null && signatureAlgorithm.isSymmetric()) {
-            throw new GeneralSecurityException("Public key and HMAC algorithm");
-        }
-
         // Unused JWS header elements indicate problems...
         // Disabled, this is a demo :)
         // JWS_Protected_Header.checkForUnread();

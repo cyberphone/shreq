@@ -53,6 +53,10 @@ public class JSONRequestValidation extends ValidationCore {
             error("Declared Method=" + shreqHeader.getMethod() + " Actual Method=" + targetMethod);
         }
         
+        getOptionalIssuedAt(shreqHeader.issuedAt);
+
+        JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+
         // 4.2:9
         decodeJWS_String(shreqHeader.getJwsString(), true);
         
@@ -65,10 +69,5 @@ public class JSONRequestValidation extends ValidationCore {
 //        message.removeProperty(REQ_JWS);
         
         // 4.2:10-13 are performed in ValidationCore
-     }
-
-    @Override
-    protected void createJWS_Payload() throws IOException {
-        JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
     }
 }
