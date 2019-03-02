@@ -51,8 +51,10 @@ public class JSONRequestValidation extends ValidationCore {
 
         String normalizedURI =
                 SHREQSupport.normalizeTargetURI(shreqData.getString(SHREQSupport.URI));
-        if (!normalizedURI.equals(targetUri)) {
-            error("Declared URI=" + normalizedURI + " Actual URI=" + targetUri);
+        String normalizedTargetUri = 
+                SHREQSupport.normalizeTargetURI(targetUri);
+        if (!normalizedURI.equals(normalizedTargetUri)) {
+            error("Declared URI=" + normalizedURI + " Actual URI=" + normalizedTargetUri);
         }
         
         // All but the signature element is signed

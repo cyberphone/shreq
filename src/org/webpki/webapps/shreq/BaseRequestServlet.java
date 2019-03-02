@@ -103,8 +103,8 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         // Get the Target Method (4.2:1 , 5.2:1)
         String targetMethod = request.getMethod();
         
-        // Recreate the normalized Target URI (4.2:2 , 5.2:2)
-        String targetUri = SHREQSupport.normalizeTargetURI(getUrlFromRequest(request));
+        // Recreate the Target URI (4.2:2 , 5.2:2)
+        String targetUri = getUrlFromRequest(request);
 
         // Collect HTTP Headers in a Lowercase Format
         LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
@@ -152,9 +152,9 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             response.setStatus(HttpServletResponse.SC_OK);
             response.setHeader(CONTENT_TYPE, "text/plain;utf-8");
             ServletOutputStream os = response.getOutputStream();
-            os.println("                  |=========|\n" +
-                       "                  | SUCCESS |\n" +
-                       "                  |=========|");
+            os.println("                  |====================|\n" +
+                       "                  | SUCCESSFUL REQUEST |\n" +
+                       "                  |====================|");
             os.print(validationCore.printCoreData());
             response.flushBuffer();
 
@@ -205,7 +205,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             validationKey = SHREQService.predefinedKeyPairs
         .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE)).getPublic();
             if (publicKey != null && !publicKey.equals(validationKey)) {
-                throw new GeneralSecurityException("In-lined JWK differs from predefined");
+                throw new GeneralSecurityException("In-lined public key differs from predefined public key");
             }
             if (validationCore.getCertificatePath() != null) {
                 SHREQService.certificateVerifier

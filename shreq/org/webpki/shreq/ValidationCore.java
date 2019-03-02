@@ -69,6 +69,8 @@ public abstract class ValidationCore {
     protected X509Certificate[] certificatePath;
     
     JSONObjectReader shreqData;
+    
+    private Object cookie;
 
     protected ValidationCore(String targetUri,
                              String targetMethod,
@@ -84,6 +86,42 @@ public abstract class ValidationCore {
 
     protected abstract void validateImplementation() throws IOException, GeneralSecurityException;
     
+    public void setCookie(Object cookie) {
+        this.cookie = cookie;
+    }
+
+    public Object getCookie() {
+        return cookie;
+    }
+
+    public byte[] getJwsPayload() {
+        return JWS_Payload;
+    }
+
+    public JSONObjectReader getJwsProtectedHeader() {
+        return JWS_Protected_Header;
+    }
+
+    public JSONObjectReader getSHREQRecord() {
+        return shreqData;
+    }
+
+    public X509Certificate[] getCertificatePath() {
+        return certificatePath;
+    }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public String getKeyId() {
+        return keyId;
+    }
+
+    public SignatureAlgorithms getSignatureAlgorithm() {
+        return signatureAlgorithm;
+    }
+
     public void validate(ValidationKeyService validationKeyService) throws IOException,
                                                                            GeneralSecurityException {
         this.validationKeyService = validationKeyService;
@@ -131,26 +169,6 @@ public abstract class ValidationCore {
                 .append("\nSHREQ Record:\n")
                 .append(shreqData.toString());
         return coreData.toString();
-    }
-
-    public JSONObjectReader getJwsProtectedHeader() {
-        return JWS_Protected_Header;
-    }
-
-    public JSONObjectReader getSHREQRecord() {
-        return shreqData;
-    }
-
-    public X509Certificate[] getCertificatePath() {
-        return certificatePath;
-    }
-
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
-
-    public String getKeyId() {
-        return keyId;
     }
 
     protected void error(String what) throws IOException {

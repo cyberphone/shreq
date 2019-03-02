@@ -43,7 +43,7 @@ public class URIRequestValidation extends ValidationCore {
         // 5.2:3-4
         int i = targetUri.indexOf(QUERY_STRING);
         if (i < 10) {
-            error("Missing '" + QUERY_STRING + "'");
+            error("URI lacks a signature ( " + QUERY_STRING + " ) element");
         }
         int next = targetUri.indexOf('&', i);
         String jwsString;

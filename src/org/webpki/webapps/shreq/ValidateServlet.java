@@ -22,11 +22,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 import java.util.Vector;
-import java.util.logging.Logger;
-
 import javax.servlet.ServletException;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -43,12 +41,15 @@ import org.webpki.jose.JOSEAsymKeyHolder;
 import org.webpki.jose.JOSEAsymSignatureValidator;
 import org.webpki.jose.JOSEHmacValidator;
 import org.webpki.jose.JOSESupport;
+import org.webpki.shreq.JSONRequestValidation;
 import org.webpki.shreq.SHREQSupport;
-import org.webpki.util.Base64URL;
+import org.webpki.shreq.URIRequestValidation;
+import org.webpki.shreq.ValidationCore;
+import org.webpki.shreq.ValidationKeyService;
 import org.webpki.util.DebugFormatter;
 import org.webpki.util.PEMDecoder;
 
-public class ValidateServlet extends BaseGuiServlet {
+public class ValidateServlet extends BaseGuiServlet implements ValidationKeyService {
 
     private static final long serialVersionUID = 1L;
 
@@ -63,64 +64,97 @@ public class ValidateServlet extends BaseGuiServlet {
             // Get the two input data items
             String signedJsonObject = getParameter(request, JSON_PAYLOAD);
             boolean jsonRequest = signedJsonObject.length() > 0;
-            String uri = getParameter(request, TARGET_URI);
+            String targetUri = getParameter(request, TARGET_URI);
             String validationKey = getParameter(request, JWS_VALIDATION_KEY);
-            String requestMethod = getParameter(request, HTTP_METHOD);
+            String targetMethod = getParameter(request, HTTP_METHOD);
+            LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
+            ValidationCore validationCore = null;
 
-            // Parse the JSON data
-            StringBuilder html = new StringBuilder();
+            // Determining Request Type
             if (jsonRequest) {
                 JSONObjectReader parsedObject = JSONParser.parse(signedJsonObject);
-/*
-            
-            // Create a pretty-printed JSON object without canonicalization
-            String prettySignature = 
-                    parsedObject.serializeToString(JSONOutputFormats.PRETTY_HTML);
-            Vector<String> tokens = 
-                    new JSONTokenExtractor().getTokens(signedJsonObject);
-            int fromIndex = 0;
-            for (String token : tokens) {
-                int start = prettySignature.indexOf("<span ", fromIndex);
-                int stop = prettySignature.indexOf("</span>", start);
-                // <span style="color:#C00000">
-                prettySignature = 
-                        prettySignature.substring(0, 
-                                                  start + 28) + 
-                                                     token + 
-                                                     prettySignature.substring(stop);
-                fromIndex = start + 1;
-            }
-            
-            // Now begin the real work...
-
-            // Decode SHREQ object.  It also removes the "jwe" property
-            SHREQSupport.ReceivedJSONRequestHeader shreqHeader =
-                    SHREQSupport.getJSONRequestHeader(parsedObject);
-            
-            // Get the actual JSON data bytes and remove the signature
-            byte[] JWS_Payload = parsedObject.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-
-    
-
-            // Start decoding the JWS header.  Algorithm is the minimum
-            SignatureAlgorithms algorithm = 
-                    JOSESupport.getSignatureAlgorithm(JWS_Protected_Header);
-
-            // We don't bother about any other header data than possible public key
-            // elements modulo JKU and X5U
-            PublicKey jwsSuppliedPublicKey = null;
-            X509Certificate[] certificatePath = null;
-            if (JWS_Protected_Header.hasProperty(JOSESupport.JWK_JSON)) {
-                jwsSuppliedPublicKey = JOSESupport.getPublicKey(JWS_Protected_Header);
-            }
-            StringBuilder certificateData = null;
-            if (JWS_Protected_Header.hasProperty(JOSESupport.X5C_JSON)) {
-                if (jwsSuppliedPublicKey != null) {
-                    throw new GeneralSecurityException("Both X5C and JWK?");
+                // Create a pretty-printed JSON object without canonicalization
+                String prettySignature = 
+                        parsedObject.serializeToString(JSONOutputFormats.PRETTY_HTML);
+                Vector<String> tokens = 
+                        new JSONTokenExtractor().getTokens(signedJsonObject);
+                int fromIndex = 0;
+                for (String token : tokens) {
+                    int start = prettySignature.indexOf("<span ", fromIndex);
+                    int stop = prettySignature.indexOf("</span>", start);
+                    // <span style="color:#C00000">
+                    prettySignature = 
+                            prettySignature.substring(0, 
+                                                      start + 28) + 
+                                                         token + 
+                                                         prettySignature.substring(stop);
+                    fromIndex = start + 1;
                 }
-                certificatePath = JOSESupport.getCertificatePath(JWS_Protected_Header);
-                jwsSuppliedPublicKey = certificatePath[0].getPublicKey();
-                for (X509Certificate certificate : certificatePath) {
+                signedJsonObject = prettySignature;
+                validationCore = new JSONRequestValidation(targetUri,
+                                                           targetMethod,
+                                                           headerMap,
+                                                           parsedObject);
+            } else {
+                validationCore = new URIRequestValidation(targetUri,
+                                                          targetMethod, 
+                                                          headerMap);
+            }
+
+            // Now assign the key
+            boolean jwkValidationKey = validationKey.startsWith("{");
+            validationCore.setCookie(jwkValidationKey ?
+                    JSONParser.parse(validationKey).getCorePublicKey(AlgorithmPreferences.JOSE)
+                                                                :
+                    validationKey.contains("-----") ?
+                 PEMDecoder.getPublicKey(validationKey.getBytes("utf-8")) :
+                 DebugFormatter.getByteArrayFromHex(validationKey));
+            
+            
+            // Core Request Data Successfully Collected - Validate!
+            validationCore.validate(this);
+
+            // Parse the JSON data
+            
+            StringBuilder html = new StringBuilder(
+                    "<div class=\"header\">Request Successfully Validated</div>")
+                .append(HTML.fancyBox("targeturi", targetUri, 
+                    "Target URI to be accessed by a [" + targetMethod + "] request"));  
+            if (jsonRequest) {
+                html.append(HTML.fancyBox("httpjsonbody", signedJsonObject, 
+                                      "JSON object (HTTP body) signed by the embedded JWS element"));
+            }
+            html.append(HTML.fancyBox("jwsheader", 
+                                      validationCore.getJwsProtectedHeader()
+                                          .serializeToString(JSONOutputFormats.PRETTY_HTML),
+                                      "Decoded JWS header"))
+                .append(HTML.fancyBox("vkey",
+                                      jwkValidationKey ? 
+                                          JSONParser.parse(validationKey)
+                                              .serializeToString(JSONOutputFormats.PRETTY_HTML)
+                                                       :
+                                      HTML.encode(validationKey).replace("\n", "<br>"),
+                                      "Signature validation " +
+                                      (validationCore.getSignatureAlgorithm().isSymmetric() ? 
+                                             "secret key in hexadecimal" :
+                                             "public key in " + 
+                                             (jwkValidationKey ? "JWK" : "PEM") +
+                                             " format")));
+            if (jsonRequest) {
+                html.append(HTML.fancyBox(
+                        "canonical", 
+                        HTML.encode(new String(validationCore.getJwsPayload(), "utf-8")),
+                        "Canonical version of the JSON data (what is actually signed) with possible line breaks " +
+                        "for display purposes only"));
+            } else {
+                html.append(HTML.fancyBox(
+                        "jwspayload", 
+                        JSONParser.parse(validationCore.getJwsPayload()).serializeToString(JSONOutputFormats.PRETTY_HTML),
+                        "Decoded JWS Payload"));
+            }
+            if (validationCore.getCertificatePath() != null) {
+                StringBuilder certificateData = null;
+                for (X509Certificate certificate : validationCore.getCertificatePath()) {
                     if (certificateData == null) {
                         certificateData = new StringBuilder();
                     } else {
@@ -130,69 +164,34 @@ public class ValidateServlet extends BaseGuiServlet {
                         HTML.encode(new CertificateInfo(certificate).toString())
                             .replace("\n", "<br>").replace("  ", ""));
                 }
-            }
-            
-            // Recreate the validation key and validate the signature
-            JOSESupport.CoreSignatureValidator validator;
-            boolean jwkValidationKey = validationKey.startsWith("{");
-            if (algorithm.isSymmetric()) {
-                if (jwsSuppliedPublicKey != null) {
-                    throw new GeneralSecurityException("Public key header elements in a HMAC signature?");
-                }
-                validator = 
-                        new JOSEHmacValidator(DebugFormatter.getByteArrayFromHex(validationKey),
-                                                  (MACAlgorithms) algorithm);
-            } else {
-                AsymSignatureAlgorithms asymSigAlg = (AsymSignatureAlgorithms) algorithm;
-                PublicKey externalPublicKey = jwkValidationKey ? 
-                    JSONParser.parse(validationKey).getCorePublicKey(AlgorithmPreferences.JOSE)
-                                                                :
-                    PEMDecoder.getPublicKey(validationKey.getBytes("utf-8"));
-
-                if (jwsSuppliedPublicKey != null && !jwsSuppliedPublicKey.equals(externalPublicKey)) {
-                    throw new GeneralSecurityException("Supplied public key differs from the one derived from the JWS header");
-                }
-                validator = new JOSEAsymSignatureValidator(externalPublicKey, asymSigAlg);
-            }
-            JOSESupport.validateJwsSignature(jwsHeaderB64, JWS_Payload, JWS_Signature, validator);
-            StringBuilder html = new StringBuilder(
-                    "<div class=\"header\"> Signature Successfully Validated</div>")
-                .append(HTML.fancyBox("signed", prettySignature, "JSON object signed by an embedded JWS element"))           
-                .append(HTML.fancyBox("header", 
-                                      JWS_Protected_Header.serializeToString(JSONOutputFormats.PRETTY_HTML),
-                                      "Decoded JWS header"))
-                .append(HTML.fancyBox("vkey",
-                                      jwkValidationKey ? 
-                                          JSONParser.parse(validationKey)
-                                              .serializeToString(JSONOutputFormats.PRETTY_HTML)
-                                                       :
-                                      HTML.encode(validationKey).replace("\n", "<br>"),
-                                      "Signature validation " + (algorithm.isSymmetric() ? 
-                                             "secret key in hexadecimal" :
-                                             "public key in " + 
-                                             (jwkValidationKey ? "JWK" : "PEM") +
-                                             " format")))
-                .append(HTML.fancyBox("canonical", 
-                                      HTML.encode(new String(JWS_Payload, "utf-8")),
-                                      "Canonical version of the JSON data (with possible line breaks " +
-                                      "for display purposes only)"));
-            if (certificateData != null) {
                 html.append(HTML.fancyBox("certpath", 
                                           certificateData.toString(),
                                           "Core certificate data"));
             }
-*/
-                html.append(parsedObject.serializeToString(JSONOutputFormats.PRETTY_HTML));
-            } else {
-                html.append("hi");
-            }
-            html.append(uri);
-            // Finally, print it out
             HTML.standardPage(response, null, html.append("<div style=\"padding:10pt\"></div>"));
         } catch (Exception e) {
             HTML.errorPage(response, e);
         }
     }
+
+    @Override
+    public JOSESupport.CoreSignatureValidator getSignatureValidator(ValidationCore validationCore,
+                                                                    SignatureAlgorithms signatureAlgorithm,
+                                                                    PublicKey publicKey, 
+                                                                    String keyId)
+    throws IOException, GeneralSecurityException {
+        if (signatureAlgorithm.isSymmetric()) {
+            return new JOSEHmacValidator((byte[])validationCore.getCookie(),
+                                         (MACAlgorithms) signatureAlgorithm);
+        }
+        PublicKey validationKey = (PublicKey)validationCore.getCookie();
+        if (publicKey != null && !publicKey.equals(validationKey)) {
+            throw new GeneralSecurityException("In-lined public key differs from predefined public key");
+        }
+        return new JOSEAsymSignatureValidator(validationKey, 
+                                             (AsymSignatureAlgorithms)signatureAlgorithm);
+    }
+
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
