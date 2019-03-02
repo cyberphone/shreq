@@ -63,6 +63,8 @@ public abstract class ValidationCore {
     protected String keyId;
     
     protected PublicKey publicKey;
+    
+    JSONObjectReader shreqData;
 
     protected ValidationCore(String targetUri,
                              String targetMethod,
@@ -74,12 +76,22 @@ public abstract class ValidationCore {
 
     protected static Logger logger = Logger.getLogger(ValidationCore.class.getName());
 
+    protected abstract String defaultMethod();
+
     protected abstract void validateImplementation() throws IOException, GeneralSecurityException;
     
     public void validate(ValidationKeyService validationKeyService) throws IOException,
                                                                            GeneralSecurityException {
         this.validationKeyService = validationKeyService;
         validateImplementation();
+        String method = shreqData.getStringConditional(SHREQSupport.METHOD, defaultMethod());
+        if (!targetMethod.equals(method)){
+            error("Declared Method=" + method + " Actual Method=" + targetMethod);
+        }       
+        if (shreqData.hasProperty(SHREQSupport.ISSUED_AT_TIME)) {
+            issuedAt = new GregorianCalendar();
+            issuedAt.setTimeInMillis(shreqData.getInt53(SHREQSupport.ISSUED_AT_TIME) * 1000);
+        }
         validateSignature();
     }
 
@@ -99,7 +111,7 @@ public abstract class ValidationCore {
     }
 
     public String printCoreData() throws IOException {
-        StringBuilder coreData = new StringBuilder()
+        StringBuilder coreData = new StringBuilder("\nReceived Headers:\n")
             .append(targetMethod)
             .append(' ')
             .append(targetUri)
@@ -110,6 +122,10 @@ public abstract class ValidationCore {
                     .append(headerMap.get(header))
                     .append('\n');
         }
+        coreData.append("\nJWS Header:\n")
+                .append(JWS_Protected_Header.toString())
+                .append("\nSHREQ Record:\n")
+                .append(shreqData.toString());
         return coreData.toString();
     }
 
@@ -126,9 +142,9 @@ public abstract class ValidationCore {
             
         }
     }
-
+    
     // 6.6
-    protected void decodeJWS_String(String jwsString, boolean detached) throws IOException,
+    protected void decodeJwsString(String jwsString, boolean detached) throws IOException,
                                                                                GeneralSecurityException {
         // :1
         int endOfHeader = jwsString.indexOf('.');
@@ -162,9 +178,6 @@ public abstract class ValidationCore {
         JWS_Signature = Base64URL.decode(jwsString.substring(lastDot + 1));
     }
 
-    void getOptionalIssuedAt(GregorianCalendar issuedAt) {
-        this.issuedAt = issuedAt;
-    }
 
     // 6.8
     protected void validateHeaderDigest(JSONObjectReader headerObject) throws IOException {

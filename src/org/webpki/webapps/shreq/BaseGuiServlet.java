@@ -56,6 +56,7 @@ public class BaseGuiServlet extends HttpServlet {
 
     static final String FLG_CERT_PATH      = "cerflg";
     static final String FLG_JWK_INLINE     = "jwkflg";
+    static final String FLG_DEF_METHOD     = "defmtd";
     static final String FLG_IAT_PRESENT    = "iatflg";
     static final String FLG_HEADERS        = "hdrflg";
     

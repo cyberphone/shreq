@@ -17,12 +17,11 @@
 package org.webpki.shreq;
 
 import java.io.IOException;
-
 import java.security.GeneralSecurityException;
-
 import java.util.LinkedHashMap;
 
 import org.webpki.json.JSONObjectReader;
+import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 
 public class JSONRequestValidation extends ValidationCore {
@@ -38,36 +37,34 @@ public class JSONRequestValidation extends ValidationCore {
     }
 
     @Override
-    protected void validateImplementation() throws IOException, GeneralSecurityException {
+    protected void validateImplementation() throws IOException, 
+                                                   GeneralSecurityException {
         // 4.2 step 1-6 are already performed
         
         // 4.2:7
-        SHREQSupport.ReceivedJSONRequestHeader shreqHeader =
-                SHREQSupport.getJSONRequestHeader(message);
-        if (!shreqHeader.getNormalizedUri().equals(targetUri)) {
-            error("Declared URI=" + shreqHeader.getNormalizedUri() + " Actual URI=" + targetUri);
+        shreqData = message.getObject(SHREQSupport.SHREQ_LABEL);
+
+        decodeJwsString(shreqData.getString(SHREQSupport.JWS), true);
+
+        String normalizedURI =
+                SHREQSupport.normalizeTargetURI(shreqData.getString(SHREQSupport.URI));
+        if (!normalizedURI.equals(targetUri)) {
+            error("Declared URI=" + normalizedURI + " Actual URI=" + targetUri);
         }
 
-        // 4.2:8
-        if (!shreqHeader.getMethod().equals(targetMethod)) {
-            error("Declared Method=" + shreqHeader.getMethod() + " Actual Method=" + targetMethod);
-        }
-        
-        getOptionalIssuedAt(shreqHeader.issuedAt);
+        JSONObjectReader save = shreqData.clone();
+        shreqData.removeProperty(SHREQSupport.JWS);
+        shreqData = save;
 
         JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+        
+        JSONObjectWriter msg = new JSONObjectWriter(message);
+        msg.setupForRewrite(SHREQSupport.SHREQ_LABEL);
+        msg.setObject(SHREQSupport.SHREQ_LABEL, shreqData);
+    }
 
-        // 4.2:9
-        decodeJWS_String(shreqHeader.getJwsString(), true);
-        
-        // 4.2:10
- //       if (message.hasProperty(REQ_HEADER)) {
-  //          validateHeaderDigest(message.getObject(REQ_HEADER));
- //       }
-        
-        // 4.2:11
-//        message.removeProperty(REQ_JWS);
-        
-        // 4.2:10-13 are performed in ValidationCore
+    @Override
+    protected String defaultMethod() {
+        return SHREQSupport.DEFAULT_JSON_REQUEST_METHOD;
     }
 }

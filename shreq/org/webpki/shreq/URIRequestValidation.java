@@ -22,7 +22,6 @@ import java.security.GeneralSecurityException;
 
 import java.util.LinkedHashMap;
 
-import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONParser;
 
 import org.webpki.util.ArrayUtil;
@@ -55,29 +54,20 @@ public class URIRequestValidation extends ValidationCore {
             jwsString = targetUri.substring(i + QUERY_LENGTH, next);
             targetUri = targetUri.substring(0, i) + targetUri.substring(next + 1);
         }
-        decodeJWS_String(jwsString, false);
+        decodeJwsString(jwsString, false);
         
-        JSONObjectReader shreqData = JSONParser.parse(JWS_Payload);
+        shreqData = JSONParser.parse(JWS_Payload);
         
         if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.HSH_NRM_URI),
                                SHREQSupport.getDigestedAndNormalizedURI(targetUri,
                                                                         signatureAlgorithm))) {
             error("URI mismatch");
         }
-        
-        String declaredMethod = 
-                shreqData.getStringConditional(SHREQSupport.METHOD,
-                                               SHREQSupport.DEFAULT_URI_REQUEST_METHOD);
-        if (!targetMethod.equals(declaredMethod)){
-            error("Declared Method=" + declaredMethod + " Actual Method=" + targetMethod);
- 
-        }
-        
-        getOptionalIssuedAt(SHREQSupport.getOptionalIssuedAt(shreqData));
-        // 5.2:5
-        // TBD
-        
-        // 5.2:6-7 are performed in ValidationCore
+    }
+
+    @Override
+    protected String defaultMethod() {
+        return SHREQSupport.DEFAULT_URI_REQUEST_METHOD;
     }
 
 }

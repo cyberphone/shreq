@@ -109,6 +109,8 @@ public class CreateServlet extends BaseGuiServlet {
                                  false, "jwkFlagChange(this.checked)"))
                 .append(checkBox(FLG_CERT_PATH, "Include provided certificate path (X5C)", 
                                  false, "certFlagChange(this.checked)"))
+                .append(checkBox(FLG_DEF_METHOD, "Include method also when default", 
+                                 false, null))
                 .append(checkBox(FLG_IAT_PRESENT, "Include time stamp (IAT)", 
                                  true, null))))
             .append(
@@ -281,6 +283,7 @@ public class CreateServlet extends BaseGuiServlet {
             boolean keyInlining = request.getParameter(FLG_JWK_INLINE) != null;
             boolean certOption = request.getParameter(FLG_CERT_PATH) != null;
             boolean iatOption = request.getParameter(FLG_IAT_PRESENT) != null;
+            boolean forceMethod = request.getParameter(FLG_DEF_METHOD) != null;
             SignatureAlgorithms algorithm = 
                     JOSESupport.getSignatureAlgorithm(getParameter(request, PRM_ALGORITHM));
 
@@ -335,9 +338,12 @@ public class CreateServlet extends BaseGuiServlet {
                 }
                 JSONObjectWriter writer = new JSONObjectWriter(reader);
                 JSONObjectWriter shreqObject = 
-                        SHREQSupport.createJSONRequestHeader(targetUri,
-                                                             method,
-                                                             iatOption ? new GregorianCalendar() : null);
+                        SHREQSupport.createJSONRequestHeader(
+                                targetUri,
+                                forceMethod ||
+                                !method.equals(SHREQSupport.DEFAULT_JSON_REQUEST_METHOD) ?
+                                        method : null,
+                                iatOption ? new GregorianCalendar() : null);
                 writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
                 byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
@@ -366,10 +372,13 @@ public class CreateServlet extends BaseGuiServlet {
             } else {
                 signedJSONRequest="";
                 JSONObjectWriter writer = 
-                        SHREQSupport.createURIRequestPayload(targetUri,
-                                                             method,
-                                                             iatOption ? new GregorianCalendar() : null,
-                                                             algorithm);
+                        SHREQSupport.createURIRequestPayload(
+                                targetUri,
+                                forceMethod ||
+                                !method.equals(SHREQSupport.DEFAULT_URI_REQUEST_METHOD) ?
+                                        method : null,
+                                iatOption ? new GregorianCalendar() : null,
+                                algorithm);
                 byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.NORMALIZED);
                 String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
                                                                   JWS_Payload,

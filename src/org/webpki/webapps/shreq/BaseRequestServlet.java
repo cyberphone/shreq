@@ -152,7 +152,9 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             response.setStatus(HttpServletResponse.SC_OK);
             response.setHeader(CONTENT_TYPE, "text/plain;utf-8");
             ServletOutputStream os = response.getOutputStream();
-            os.println("SUCCESS");
+            os.println("                  |=========|\n" +
+                       "                  | SUCCESS |\n" +
+                       "                  |=========|");
             os.print(validationCore.printCoreData());
             response.flushBuffer();
 

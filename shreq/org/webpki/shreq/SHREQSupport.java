@@ -21,7 +21,6 @@ import java.util.GregorianCalendar;
 
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONObjectWriter;
 
 public class SHREQSupport {
@@ -39,28 +38,6 @@ public class SHREQSupport {
     public static final String DEFAULT_JSON_REQUEST_METHOD = "POST";
     public static final String DEFAULT_URI_REQUEST_METHOD  = "GET";
     
-    public static class ReceivedJSONRequestHeader {
-        String normalizedURI;
-        String method;
-        GregorianCalendar issuedAt; // May be null
-        String jwsString;
-        
-        public String getNormalizedUri() {
-            return normalizedURI;
-        }
-        
-        public String getMethod() {
-            return method;
-        }
-        
-        public GregorianCalendar getIssueAt() {
-            return issuedAt;
-        }
-        
-        public String getJwsString() {
-            return jwsString;
-        }
-    }
     
     public static JSONObjectWriter createJSONRequestHeader(String uri,
                                                            String method,
@@ -74,30 +51,6 @@ public class SHREQSupport {
             // If the "payload" already has a "DateTime" object this element MAY be skipped
             .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(ISSUED_AT_TIME, 
                                                                     issuetAt.getTimeInMillis() / 1000));
-    }
-    
-    public static GregorianCalendar getOptionalIssuedAt(JSONObjectReader json) throws IOException {
-        if (json.hasProperty(ISSUED_AT_TIME)) {
-            GregorianCalendar issuedAt = new GregorianCalendar();
-            issuedAt.setTimeInMillis(json.getInt53(ISSUED_AT_TIME) * 1000);
-            return issuedAt;
-        }
-        return null;
-    }
-
-    public static ReceivedJSONRequestHeader getJSONRequestHeader(JSONObjectReader parsedObject)
-    throws IOException {
-        JSONObjectReader jsonHeader = parsedObject.getObject(SHREQ_LABEL);
-        ReceivedJSONRequestHeader decodedHeader = new ReceivedJSONRequestHeader();
-        decodedHeader.normalizedURI = normalizeTargetURI(jsonHeader.getString(URI));
-        decodedHeader.issuedAt = getOptionalIssuedAt(jsonHeader);
-        decodedHeader.method = 
-                jsonHeader.getStringConditional(METHOD, 
-                                                DEFAULT_JSON_REQUEST_METHOD);
-        decodedHeader.jwsString = jsonHeader.getString(JWS);
-        jsonHeader.checkForUnread();
-        jsonHeader.removeProperty(JWS);
-        return decodedHeader;
     }
     
     // 6.7
