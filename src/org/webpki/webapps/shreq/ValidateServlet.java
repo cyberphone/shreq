@@ -17,14 +17,19 @@
 package org.webpki.webapps.shreq;
 
 import java.io.IOException;
+
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+
 import java.security.cert.X509Certificate;
+
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.Vector;
+
 import javax.servlet.ServletException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -33,19 +38,23 @@ import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.CertificateInfo;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
+
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
+
 import org.webpki.jose.JOSEAsymKeyHolder;
 import org.webpki.jose.JOSEAsymSignatureValidator;
 import org.webpki.jose.JOSEHmacValidator;
 import org.webpki.jose.JOSESupport;
+
 import org.webpki.shreq.JSONRequestValidation;
 import org.webpki.shreq.SHREQSupport;
 import org.webpki.shreq.URIRequestValidation;
 import org.webpki.shreq.ValidationCore;
 import org.webpki.shreq.ValidationKeyService;
+
 import org.webpki.util.DebugFormatter;
 import org.webpki.util.PEMDecoder;
 
@@ -223,7 +232,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                                                            new JOSEAsymKeyHolder(privateKey),
                                                            true);
                     // Create the completed object which now is in "writer"
-                    shreqObject.setString(SHREQSupport.JWS, jwsString);
+                    shreqObject.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
                     
                     sampleRequest = writer.serializeToString(JSONOutputFormats.PRETTY_PRINT);
 
@@ -259,7 +268,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             .append(
                 "<div style=\"display:flex;justify-content:center\">" +
                 "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +
-                "Validate JSON Signature" +
+                "Validate Signed Request" +
                 "</div>" +
                 "</div>" +
                 "</form>" +

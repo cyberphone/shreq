@@ -17,6 +17,7 @@
 package org.webpki.shreq;
 
 import java.io.IOException;
+
 import java.util.GregorianCalendar;
 
 import org.webpki.crypto.SignatureAlgorithms;
@@ -27,29 +28,29 @@ public class SHREQSupport {
     
     private SHREQSupport() {}
     
-    public static final String SHREQ_LABEL    = "$secinf$";
+    public static final String SHREQ_LABEL           = "$secinf$";
     
-    public static final String URI            = "uri";
-    public static final String HSH_NRM_URI    = "hni";
-    public static final String METHOD         = "mtd";
-    public static final String ISSUED_AT_TIME = "iat";
-    public static final String JWS            = "jws";
+    public static final String SHREQ_TARGET_URI            = "uri";  // For JSON requests only
+    public static final String SHREQ_HASHED_NORMALIZED_URI = "hnu";  // For URI based requests only
+    public static final String SHREQ_HTTP_METHOD           = "mtd";
+    public static final String SHREQ_ISSUED_AT_TIME        = "iat";
+    public static final String SHREQ_JWS_STRING            = "jws";
     
-    public static final String DEFAULT_JSON_REQUEST_METHOD = "POST";
-    public static final String DEFAULT_URI_REQUEST_METHOD  = "GET";
+    public static final String SHREQ_DEFAULT_JSON_REQUEST_METHOD = "POST";
+    public static final String SHREQ_DEFAULT_URI_REQUEST_METHOD  = "GET";
     
     
     public static JSONObjectWriter createJSONRequestHeader(String uri,
                                                            String method,
                                                            GregorianCalendar issuetAt) throws IOException {
         return new JSONObjectWriter()
-            .setString(URI, uri)
+            .setString(SHREQ_TARGET_URI, uri)
 
             // If the method is "POST" this element MAY be skipped
-            .setDynamic((wr) -> method == null ? wr : wr.setString(METHOD, method))
+            .setDynamic((wr) -> method == null ? wr : wr.setString(SHREQ_HTTP_METHOD, method))
 
             // If the "payload" already has a "DateTime" object this element MAY be skipped
-            .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(ISSUED_AT_TIME, 
+            .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, 
                                                                     issuetAt.getTimeInMillis() / 1000));
     }
     
@@ -68,16 +69,17 @@ public class SHREQSupport {
     public static JSONObjectWriter createURIRequestPayload(String targetUri,
                                                            String method,
                                                            GregorianCalendar issuetAt,
-                                                           SignatureAlgorithms signatureAlgorithm) throws IOException {
+                                                           SignatureAlgorithms signatureAlgorithm)
+    throws IOException {
         return new JSONObjectWriter()
-            .setBinary(HSH_NRM_URI, getDigestedAndNormalizedURI(targetUri,
-                                                                signatureAlgorithm))
+            .setBinary(SHREQ_HASHED_NORMALIZED_URI, getDigestedAndNormalizedURI(targetUri,
+                                                                                signatureAlgorithm))
     
             // If the method is "GET" this element MAY be skipped
-            .setDynamic((wr) -> method == null ? wr : wr.setString(METHOD, method))
+            .setDynamic((wr) -> method == null ? wr : wr.setString(SHREQ_HTTP_METHOD, method))
     
             // This element MAY be skipped
-            .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(ISSUED_AT_TIME, 
+            .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, 
                                                                     issuetAt.getTimeInMillis() / 1000));
     }
 }

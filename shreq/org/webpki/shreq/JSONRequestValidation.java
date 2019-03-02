@@ -46,11 +46,11 @@ public class JSONRequestValidation extends ValidationCore {
         // 4.2:7
         shreqData = message.getObject(SHREQSupport.SHREQ_LABEL);
 
-        String jwsString = shreqData.getString(SHREQSupport.JWS);
+        String jwsString = shreqData.getString(SHREQSupport.SHREQ_JWS_STRING);
         decodeJwsString(jwsString, true);
 
         String normalizedURI =
-                SHREQSupport.normalizeTargetURI(shreqData.getString(SHREQSupport.URI));
+                SHREQSupport.normalizeTargetURI(shreqData.getString(SHREQSupport.SHREQ_TARGET_URI));
         String normalizedTargetUri = 
                 SHREQSupport.normalizeTargetURI(targetUri);
         if (!normalizedURI.equals(normalizedTargetUri)) {
@@ -58,18 +58,18 @@ public class JSONRequestValidation extends ValidationCore {
         }
         
         // All but the signature element is signed
-        shreqData.removeProperty(SHREQSupport.JWS);
+        shreqData.removeProperty(SHREQSupport.SHREQ_JWS_STRING);
 
         JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
         // However, be nice and restore data after canonicalization
         JSONObjectWriter msg = new JSONObjectWriter(shreqData);
-        msg.setupForRewrite(SHREQSupport.JWS);
-        msg.setString(SHREQSupport.JWS, jwsString);
+        msg.setupForRewrite(SHREQSupport.SHREQ_JWS_STRING);
+        msg.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
     }
 
     @Override
     protected String defaultMethod() {
-        return SHREQSupport.DEFAULT_JSON_REQUEST_METHOD;
+        return SHREQSupport.SHREQ_DEFAULT_JSON_REQUEST_METHOD;
     }
 }

@@ -126,13 +126,14 @@ public abstract class ValidationCore {
                                                                            GeneralSecurityException {
         this.validationKeyService = validationKeyService;
         validateImplementation();
-        String method = shreqData.getStringConditional(SHREQSupport.METHOD, defaultMethod());
+        String method = 
+        		shreqData.getStringConditional(SHREQSupport.SHREQ_HTTP_METHOD, defaultMethod());
         if (!targetMethod.equals(method)){
             error("Declared Method=" + method + " Actual Method=" + targetMethod);
         }       
-        if (shreqData.hasProperty(SHREQSupport.ISSUED_AT_TIME)) {
+        if (shreqData.hasProperty(SHREQSupport.SHREQ_ISSUED_AT_TIME)) {
             issuedAt = new GregorianCalendar();
-            issuedAt.setTimeInMillis(shreqData.getInt53(SHREQSupport.ISSUED_AT_TIME) * 1000);
+            issuedAt.setTimeInMillis(shreqData.getInt53(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000);
         }
         validateSignature();
     }

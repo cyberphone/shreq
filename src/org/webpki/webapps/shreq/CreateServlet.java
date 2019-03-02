@@ -341,7 +341,7 @@ public class CreateServlet extends BaseGuiServlet {
                         SHREQSupport.createJSONRequestHeader(
                                 targetUri,
                                 forceMethod ||
-                                !method.equals(SHREQSupport.DEFAULT_JSON_REQUEST_METHOD) ?
+                                !method.equals(SHREQSupport.SHREQ_DEFAULT_JSON_REQUEST_METHOD) ?
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null);
                 writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
@@ -355,7 +355,7 @@ public class CreateServlet extends BaseGuiServlet {
                 keyHolder = null;  // Nullify it after use
         
                 // Create the completed object which now is in "writer"
-                shreqObject.setString(SHREQSupport.JWS, jwsString);
+                shreqObject.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
                 
                 signedJSONRequest = writer.serializeToString(JSONOutputFormats.NORMALIZED);
                 
@@ -375,7 +375,7 @@ public class CreateServlet extends BaseGuiServlet {
                         SHREQSupport.createURIRequestPayload(
                                 targetUri,
                                 forceMethod ||
-                                !method.equals(SHREQSupport.DEFAULT_URI_REQUEST_METHOD) ?
+                                !method.equals(SHREQSupport.SHREQ_DEFAULT_URI_REQUEST_METHOD) ?
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null,
                                 algorithm);

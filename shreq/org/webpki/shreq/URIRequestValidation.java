@@ -58,7 +58,7 @@ public class URIRequestValidation extends ValidationCore {
         
         shreqData = JSONParser.parse(JWS_Payload);
         
-        if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.HSH_NRM_URI),
+        if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.SHREQ_HASHED_NORMALIZED_URI),
                                SHREQSupport.getDigestedAndNormalizedURI(targetUri,
                                                                         signatureAlgorithm))) {
             error("URI mismatch");
@@ -67,7 +67,7 @@ public class URIRequestValidation extends ValidationCore {
 
     @Override
     protected String defaultMethod() {
-        return SHREQSupport.DEFAULT_URI_REQUEST_METHOD;
+        return SHREQSupport.SHREQ_DEFAULT_URI_REQUEST_METHOD;
     }
 
 }

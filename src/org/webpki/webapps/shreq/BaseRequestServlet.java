@@ -45,7 +45,6 @@ import org.webpki.jose.JOSESupport;
 import org.webpki.json.JSONParser;
 
 import org.webpki.shreq.JSONRequestValidation;
-import org.webpki.shreq.SHREQSupport;
 import org.webpki.shreq.URIRequestValidation;
 import org.webpki.shreq.ValidationCore;
 import org.webpki.shreq.ValidationKeyService;
