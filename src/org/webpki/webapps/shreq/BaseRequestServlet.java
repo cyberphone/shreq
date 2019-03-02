@@ -177,11 +177,12 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
     void extConfError() throws IOException {
         throw new IOException("'" + BaseGuiServlet.EXTCONFREQ +
-                              "' only supports requests with in-lined asymmetric JWKs");
+                              "' only supports requests with in-lined asymmetric JWKs and X5Cs");
     }
 
     @Override
-    public JOSESupport.CoreSignatureValidator getSignatureValidator(SignatureAlgorithms signatureAlgorithm,
+    public JOSESupport.CoreSignatureValidator getSignatureValidator(ValidationCore validationCore,
+                                                                    SignatureAlgorithms signatureAlgorithm,
                                                                     PublicKey publicKey, 
                                                                     String keyId)
     throws IOException, GeneralSecurityException {
@@ -205,6 +206,10 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE)).getPublic();
             if (publicKey != null && !publicKey.equals(validationKey)) {
                 throw new GeneralSecurityException("In-lined JWK differs from predefined");
+            }
+            if (validationCore.getCertificatePath() != null) {
+                SHREQService.certificateVerifier
+                    .verifyCertificatePath(validationCore.getCertificatePath());
             }
         }
         return new JOSEAsymSignatureValidator(validationKey, 

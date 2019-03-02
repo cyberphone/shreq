@@ -91,6 +91,7 @@
       <zipfileset dir="${openkeystore.dir}/testdata/keys" prefix="${class_war_path}">
         <include name="a*.hex"/>
         <exclude name="*128*"/>
+        <include name="rootca.pem"/>
         <include name="p256*.pem"/>
         <include name="p384*.pem"/>
         <include name="p521*.pem"/>

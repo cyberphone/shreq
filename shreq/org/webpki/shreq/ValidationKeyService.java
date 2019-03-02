@@ -28,8 +28,9 @@ import org.webpki.jose.JOSESupport;
 public interface ValidationKeyService {
 
     public JOSESupport.CoreSignatureValidator 
-        getSignatureValidator(SignatureAlgorithms signatureAlgorithm,
-                              PublicKey publicKey,
+        getSignatureValidator(ValidationCore valiationCode,
+                              SignatureAlgorithms signatureAlgorithm,
+                              PublicKey publicKey, // Also filled for X5C
                               String keyId) throws IOException, GeneralSecurityException;
 
 }

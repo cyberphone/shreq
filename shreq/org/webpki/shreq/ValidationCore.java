@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
 
+import java.security.cert.X509Certificate;
+
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 
@@ -63,6 +65,8 @@ public abstract class ValidationCore {
     protected String keyId;
     
     protected PublicKey publicKey;
+    
+    protected X509Certificate[] certificatePath;
     
     JSONObjectReader shreqData;
 
@@ -133,14 +137,24 @@ public abstract class ValidationCore {
         return JWS_Protected_Header;
     }
 
+    public JSONObjectReader getSHREQRecord() {
+        return shreqData;
+    }
+
+    public X509Certificate[] getCertificatePath() {
+        return certificatePath;
+    }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public String getKeyId() {
+        return keyId;
+    }
+
     protected void error(String what) throws IOException {
         throw new IOException(what);
-    }
-    
-    protected void getOptionalTime(JSONObjectReader json) {
-        if (json.hasProperty(SHREQSupport.ISSUED_AT_TIME)) {
-            
-        }
     }
     
     // 6.6
@@ -169,8 +183,19 @@ public abstract class ValidationCore {
                 JOSESupport.getKeyId(JWS_Protected_Header) : null;
         publicKey = JWS_Protected_Header.hasProperty(JOSESupport.JWK_JSON) ?
                 JOSESupport.getPublicKey(JWS_Protected_Header) : null;
-        if (publicKey != null && signatureAlgorithm.isSymmetric()) {
-            throw new GeneralSecurityException("Public key and HMAC algorithm");
+        certificatePath = JWS_Protected_Header.hasProperty(JOSESupport.X5C_JSON) ?
+                        JOSESupport.getCertificatePath(JWS_Protected_Header) : null;
+        if (publicKey != null) {
+            if (signatureAlgorithm.isSymmetric()) {
+                throw new GeneralSecurityException("Public key and HMAC algorithm");
+            }
+            if (certificatePath != null) {
+                throw new GeneralSecurityException("Mixing \"" + 
+                                                   JOSESupport.JWK_JSON +
+                                                   "\" and \"" +
+                                                   JOSESupport.X5C_JSON +
+                                                   "\"");
+            }
         }
 
         
@@ -200,8 +225,10 @@ public abstract class ValidationCore {
                 jwsProtectedHeaderB64U, 
                 JWS_Payload,
                 JWS_Signature, 
-                validationKeyService.getSignatureValidator(signatureAlgorithm, 
-                                                           publicKey,
-                                                           keyId));
+                validationKeyService.getSignatureValidator(
+                        this,
+                        signatureAlgorithm, 
+                        certificatePath == null ? publicKey : certificatePath[0].getPublicKey(),
+                        keyId));
     }
 }

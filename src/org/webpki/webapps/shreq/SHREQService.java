@@ -20,11 +20,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.security.GeneralSecurityException;
+
 import java.security.KeyPair;
+import java.security.KeyStore;
 
 import java.util.LinkedHashMap;
 
 import java.util.logging.Level;
+
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContextEvent;
@@ -33,6 +36,7 @@ import javax.servlet.ServletContextListener;
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.CustomCryptoProvider;
+import org.webpki.crypto.KeyStoreVerifier;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
@@ -50,6 +54,8 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
     
     static String keyDeclarations;
     
+    static KeyStoreVerifier certificateVerifier;
+
     static boolean logging;
     
     static LinkedHashMap<String, byte[]> predefinedSecretKeys = new LinkedHashMap<String, byte[]>();
@@ -172,6 +178,13 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
                           .addKey(MACAlgorithms.HMAC_SHA256,            "a256")
                           .addKey(MACAlgorithms.HMAC_SHA384,            "a384")
                           .addKey(MACAlgorithms.HMAC_SHA512,            "a512").toString();
+            
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(null, null);
+            keyStore.setCertificateEntry(
+                          "mykey",
+                          PEMDecoder.getRootCertificate(getEmbeddedResourceBinary("rootca.pem")));
+            certificateVerifier = new KeyStoreVerifier(keyStore);
 
             /////////////////////////////////////////////////////////////////////////////////////////////
             // Logging?

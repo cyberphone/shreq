@@ -17,7 +17,9 @@
 package org.webpki.shreq;
 
 import java.io.IOException;
+
 import java.security.GeneralSecurityException;
+
 import java.util.LinkedHashMap;
 
 import org.webpki.json.JSONObjectReader;
@@ -44,23 +46,24 @@ public class JSONRequestValidation extends ValidationCore {
         // 4.2:7
         shreqData = message.getObject(SHREQSupport.SHREQ_LABEL);
 
-        decodeJwsString(shreqData.getString(SHREQSupport.JWS), true);
+        String jwsString = shreqData.getString(SHREQSupport.JWS);
+        decodeJwsString(jwsString, true);
 
         String normalizedURI =
                 SHREQSupport.normalizeTargetURI(shreqData.getString(SHREQSupport.URI));
         if (!normalizedURI.equals(targetUri)) {
             error("Declared URI=" + normalizedURI + " Actual URI=" + targetUri);
         }
-
-        JSONObjectReader save = shreqData.clone();
+        
+        // All but the signature element is signed
         shreqData.removeProperty(SHREQSupport.JWS);
-        shreqData = save;
 
         JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
-        JSONObjectWriter msg = new JSONObjectWriter(message);
-        msg.setupForRewrite(SHREQSupport.SHREQ_LABEL);
-        msg.setObject(SHREQSupport.SHREQ_LABEL, shreqData);
+        // However, be nice and restore data after canonicalization
+        JSONObjectWriter msg = new JSONObjectWriter(shreqData);
+        msg.setupForRewrite(SHREQSupport.JWS);
+        msg.setString(SHREQSupport.JWS, jwsString);
     }
 
     @Override
