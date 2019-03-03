@@ -224,23 +224,26 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
         String targetUri = getDefaultUri(request);
         if (sampleJsonRequest_JS == null) {
             synchronized(this) {
+                AsymSignatureAlgorithms signatureAlgorithm = AsymSignatureAlgorithms.ECDSA_SHA256;
                 JSONObjectWriter JWS_Protected_Header =
                         JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
-                                                          AsymSignatureAlgorithms.ECDSA_SHA256);
+                                                          signatureAlgorithm);
                 JSONObjectWriter writer = 
                         new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
                 
                 JSONObjectWriter shreqObject = 
                         SHREQSupport.createJSONRequestHeader(targetUri,
                                                              SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
-                                                             new GregorianCalendar());
+                                                             new GregorianCalendar(),
+                                                             "",
+                                                             signatureAlgorithm);
                 writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
                 byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
                 // Sign it using the provided algorithm and key
                 PrivateKey privateKey = 
                         SHREQService.predefinedKeyPairs
-                            .get(AsymSignatureAlgorithms.ECDSA_SHA256
+                            .get(signatureAlgorithm
                                     .getAlgorithmId(AlgorithmPreferences.JOSE)).getPrivate();
                 try {
                     String jwsString = 
@@ -258,7 +261,8 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                             SHREQSupport.createURIRequestPayload(targetUri,
                                                                  SHREQSupport.SHREQ_DEFAULT_URI_METHOD,
                                                                  new GregorianCalendar(),
-                                                                 AsymSignatureAlgorithms.ECDSA_SHA256);
+                                                                 "",
+                                                                 signatureAlgorithm);
                     sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
                             targetUri,
                             JOSESupport.createJwsSignature(

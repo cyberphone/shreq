@@ -32,9 +32,11 @@ import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.jose.JOSESupport;
 
+import org.webpki.json.JSONArrayReader;
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONParser;
 
+import org.webpki.util.ArrayUtil;
 import org.webpki.util.Base64URL;
 
 public abstract class ValidationCore {
@@ -70,6 +72,10 @@ public abstract class ValidationCore {
     JSONObjectReader shreqData;
     
     private Object cookie;
+
+    private byte[] headerDigest;
+
+    private String headerData;
 
     protected ValidationCore(String targetUri,
                              String targetMethod,
@@ -143,6 +149,14 @@ public abstract class ValidationCore {
         if (shreqData.hasProperty(SHREQSupport.SHREQ_ISSUED_AT_TIME)) {
             issuedAt = new GregorianCalendar();
             issuedAt.setTimeInMillis(shreqData.getInt53(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000);
+        }
+        if (shreqData.hasProperty(SHREQSupport.SHREQ_HEADER_RECORD)) {
+            JSONArrayReader array = shreqData.getArray(SHREQSupport.SHREQ_HEADER_RECORD);
+            headerDigest = array.getBinary();
+            headerData = array.getString();
+            if (array.hasMore()) {
+                error("Excess elements in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
+            }
         }
         shreqData.checkForUnread();
         validateSignature();
@@ -243,6 +257,14 @@ public abstract class ValidationCore {
         // 4.2:10 or 5.2:5
         
         validationMode = true;
+        
+        if (headerDigest != null) {
+            if (!ArrayUtil.compare(headerDigest, 
+                                   SHREQSupport.getDigestedURI(headerData,
+                                                               signatureAlgorithm))) {
+                error("\"" + SHREQSupport.SHREQ_HEADER_RECORD + "\" digest error");
+            }
+        }
         
         // 6.9:1
         // Unused JWS header elements indicate problems...

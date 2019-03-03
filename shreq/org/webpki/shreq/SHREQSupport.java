@@ -48,10 +48,25 @@ public class SHREQSupport {
                                                               "HEAD",
                                                               "CONNECT"};
     
+    private static JSONObjectWriter setHeader(JSONObjectWriter wr,
+                                              String headerData,
+                                              SignatureAlgorithms signatureAlgorithm)
+    throws IOException {
+        if (headerData != null && headerData.length() > 0) {
+            wr.setArray(SHREQ_HEADER_RECORD)
+                .setBinary(signatureAlgorithm.getDigestAlgorithm().digest(headerData.getBytes("utf-8")))
+                .setString(headerData);
+        }
+        return wr;
+    }
+    
     public static JSONObjectWriter createJSONRequestHeader(String targetUri,
                                                            String targetMethod,
-                                                           GregorianCalendar issuetAt) throws IOException {
-        return new JSONObjectWriter()
+                                                           GregorianCalendar issuetAt,
+                                                           String headerData, 
+                                                           SignatureAlgorithms signatureAlgorithm)
+    throws IOException {
+        JSONObjectWriter header = new JSONObjectWriter()
             .setString(SHREQ_TARGET_URI, normalizeTargetURI(targetUri))
 
             // If the method is "POST" this element MAY be skipped
@@ -61,6 +76,31 @@ public class SHREQSupport {
             // If the "payload" already has a "DateTime" object this element MAY be skipped
             .setDynamic((wr) -> issuetAt == null ?
                     wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
+
+        // Optional headers
+        return setHeader(header, headerData, signatureAlgorithm);
+    }
+    
+    public static JSONObjectWriter createURIRequestPayload(String targetUri,
+                                                           String targetMethod,
+                                                           GregorianCalendar issuetAt,
+                                                           String headerData, 
+                                                           SignatureAlgorithms signatureAlgorithm)
+    throws IOException {
+        JSONObjectWriter header = new JSONObjectWriter()
+            .setBinary(SHREQ_HASHED_NORMALIZED_URI, 
+                       getDigestedURI(normalizeTargetURI(targetUri), signatureAlgorithm))
+    
+            // If the method is "GET" this element MAY be skipped
+            .setDynamic((wr) -> targetMethod == null ? 
+            wr : wr.setString(SHREQ_HTTP_METHOD, targetMethod))
+            
+            // This element MAY be skipped
+            .setDynamic((wr) -> issuetAt == null ?
+            wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
+    
+        // Optional headers
+        return setHeader(header, headerData, signatureAlgorithm);
     }
     
     static final char[] BIG_HEX = {'0', '1', '2', '3', '4', '5', '6', '7',
@@ -96,21 +136,4 @@ public class SHREQSupport {
         return signatureAlgorithm.getDigestAlgorithm().digest(alreadyNormalizedUri.getBytes("utf-8"));      
     }
 
-    public static JSONObjectWriter createURIRequestPayload(String targetUri,
-                                                           String targetMethod,
-                                                           GregorianCalendar issuetAt,
-                                                           SignatureAlgorithms signatureAlgorithm)
-    throws IOException {
-        return new JSONObjectWriter()
-            .setBinary(SHREQ_HASHED_NORMALIZED_URI,
-                       getDigestedURI(normalizeTargetURI(targetUri), signatureAlgorithm))
-    
-            // If the method is "GET" this element MAY be skipped
-            .setDynamic((wr) -> targetMethod == null ? 
-                    wr : wr.setString(SHREQ_HTTP_METHOD, targetMethod))
-    
-            // This element MAY be skipped
-            .setDynamic((wr) -> issuetAt == null ?
-                    wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
-    }
 }
