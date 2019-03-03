@@ -60,6 +60,7 @@ public class JSONRequestValidation extends ValidationCore {
         JSONObjectWriter msg = new JSONObjectWriter(shreqData);
         msg.setupForRewrite(SHREQSupport.SHREQ_JWS_STRING);
         msg.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
+        shreqData.scanAway(SHREQSupport.SHREQ_JWS_STRING);
     }
 
     @Override
