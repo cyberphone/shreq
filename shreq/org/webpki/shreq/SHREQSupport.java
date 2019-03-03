@@ -28,7 +28,7 @@ public class SHREQSupport {
     
     private SHREQSupport() {}
     
-    public static final String SHREQ_LABEL           = "$secinf$";
+    public static final String SHREQ_LABEL                 = "$secinf$";
     
     public static final String SHREQ_TARGET_URI            = "uri";  // For JSON requests only
     public static final String SHREQ_HASHED_NORMALIZED_URI = "hnu";  // For URI based requests only
@@ -36,9 +36,16 @@ public class SHREQSupport {
     public static final String SHREQ_ISSUED_AT_TIME        = "iat";
     public static final String SHREQ_JWS_STRING            = "jws";
     
-    public static final String SHREQ_DEFAULT_JSON_REQUEST_METHOD = "POST";
-    public static final String SHREQ_DEFAULT_URI_REQUEST_METHOD  = "GET";
+    public static final String SHREQ_DEFAULT_JSON_METHOD   = "POST";
+    public static final String SHREQ_DEFAULT_URI_METHOD    = "GET";
     
+    public static final String[] HTTP_METHODS              = {"GET", 
+    	                                                      "POST",
+    	                                                      "PUT", 
+    	                                                      "DELETE",
+    	                                                      "PATCH",
+    	                                                      "HEAD",
+    	                                                      "CONNECT"};
     
     public static JSONObjectWriter createJSONRequestHeader(String uri,
                                                            String method,

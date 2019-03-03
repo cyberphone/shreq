@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.SignatureAlgorithms;
+import org.webpki.shreq.SHREQSupport;
 
 public class BaseGuiServlet extends HttpServlet {
 
@@ -88,15 +89,13 @@ public class BaseGuiServlet extends HttpServlet {
         return _defaultTargetUri;
     }
     
-    static final String[] METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "CONNECT"};
-    
     static class SelectMethod {
 
         StringBuilder html = new StringBuilder("<select name=\"" +
                 HTTP_METHOD + "\" id=\"" + HTTP_METHOD + "\">");
         
         SelectMethod() {
-            for (String method : METHODS) {
+            for (String method : SHREQSupport.HTTP_METHODS) {
                 html.append("<option value=\"")
                     .append(method)
                     .append("\"")

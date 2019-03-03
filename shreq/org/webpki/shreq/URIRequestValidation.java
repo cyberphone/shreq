@@ -33,7 +33,7 @@ public class URIRequestValidation extends ValidationCore {
 
     public URIRequestValidation(String targetUri,
                                 String targetMethod,
-                                LinkedHashMap<String, String> headerMap) {
+                                LinkedHashMap<String, String> headerMap) throws IOException {
         super(targetUri, targetMethod, headerMap);
     }
 
@@ -55,9 +55,9 @@ public class URIRequestValidation extends ValidationCore {
             targetUri = targetUri.substring(0, i) + targetUri.substring(next + 1);
         }
         decodeJwsString(jwsString, false);
-        
+
         shreqData = JSONParser.parse(JWS_Payload);
-        
+
         if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.SHREQ_HASHED_NORMALIZED_URI),
                                SHREQSupport.getDigestedAndNormalizedURI(targetUri,
                                                                         signatureAlgorithm))) {
@@ -67,7 +67,7 @@ public class URIRequestValidation extends ValidationCore {
 
     @Override
     protected String defaultMethod() {
-        return SHREQSupport.SHREQ_DEFAULT_URI_REQUEST_METHOD;
+        return SHREQSupport.SHREQ_DEFAULT_URI_METHOD;
     }
 
 }

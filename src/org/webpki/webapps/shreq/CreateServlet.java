@@ -341,7 +341,7 @@ public class CreateServlet extends BaseGuiServlet {
                         SHREQSupport.createJSONRequestHeader(
                                 targetUri,
                                 forceMethod ||
-                                !method.equals(SHREQSupport.SHREQ_DEFAULT_JSON_REQUEST_METHOD) ?
+                                !method.equals(SHREQSupport.SHREQ_DEFAULT_JSON_METHOD) ?
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null);
                 writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
@@ -375,7 +375,7 @@ public class CreateServlet extends BaseGuiServlet {
                         SHREQSupport.createURIRequestPayload(
                                 targetUri,
                                 forceMethod ||
-                                !method.equals(SHREQSupport.SHREQ_DEFAULT_URI_REQUEST_METHOD) ?
+                                !method.equals(SHREQSupport.SHREQ_DEFAULT_URI_METHOD) ?
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null,
                                 algorithm);

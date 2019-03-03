@@ -33,7 +33,7 @@ public class JSONRequestValidation extends ValidationCore {
     public JSONRequestValidation(String targetUri,
                                  String targetMethod,
                                  LinkedHashMap<String, String> headerMap,
-                                 JSONObjectReader message) {
+                                 JSONObjectReader message) throws IOException {
         super(targetUri, targetMethod, headerMap);
         this.message = message;
     }
@@ -70,6 +70,6 @@ public class JSONRequestValidation extends ValidationCore {
 
     @Override
     protected String defaultMethod() {
-        return SHREQSupport.SHREQ_DEFAULT_JSON_REQUEST_METHOD;
+        return SHREQSupport.SHREQ_DEFAULT_JSON_METHOD;
     }
 }

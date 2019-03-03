@@ -1,0 +1,6 @@
+{
+    "statement": "Hello signed world!",
+    "otherProperties": [2e+3, true],
+    "$req.uri": "https://localhost:8442/shreq/preconfreq?something=7",
+    "$req.jws": "eyJhbGciOiJSUzUxMiJ9..Ka0PPCXZXPpVi6LbwOb7_2mW3N-F7lIWX3VCyWP_D2NnkMNFrui5snF-ftCKDs2i4-hII9ynSo8vRPOP62H5AgKj3HDeZuJKNQPC0Sm7DMu3EBDxE81ooICqsW3ScOiIxfyj5eWsLwiXGlurblj-XeBtpbVZHEedSIfXfOXWfjWQFb-BLrsZDJzh2G0BnrxbuNp1hxnTyF0-PdKNV0ZiPMGKHjnaGrdvx-AJ9KZ0kL7sMY11prD7ReaFg5DZQwPPih5pfkKRB4ACsTE7o11V15uk3XrFWztwO-IwRV5YTir2aiOMIdeX-vulyBOBe7kP1c5blTBKGG5BwViDfC_rcA"
+}

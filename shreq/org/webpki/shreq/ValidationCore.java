@@ -37,7 +37,6 @@ import org.webpki.json.JSONParser;
 
 import org.webpki.util.Base64URL;
 
-
 public abstract class ValidationCore {
     
     protected LinkedHashMap<String, String> headerMap;
@@ -74,10 +73,16 @@ public abstract class ValidationCore {
 
     protected ValidationCore(String targetUri,
                              String targetMethod,
-                             LinkedHashMap<String, String> headerMap) {
+                             LinkedHashMap<String, String> headerMap) throws IOException {
         this.targetUri = targetUri;
-        this.targetMethod = targetMethod;
         this.headerMap = headerMap;
+        for (String method : SHREQSupport.HTTP_METHODS) {
+        	if (method.equals(targetMethod)) {
+        		this.targetMethod = targetMethod;
+        		return;
+        	}
+        }
+        error("Unsupported method: " + targetMethod);
     }
 
     protected static Logger logger = Logger.getLogger(ValidationCore.class.getName());
@@ -127,7 +132,7 @@ public abstract class ValidationCore {
         this.validationKeyService = validationKeyService;
         validateImplementation();
         String method = 
-        		shreqData.getStringConditional(SHREQSupport.SHREQ_HTTP_METHOD, defaultMethod());
+                shreqData.getStringConditional(SHREQSupport.SHREQ_HTTP_METHOD, defaultMethod());
         if (!targetMethod.equals(method)){
             error("Declared Method=" + method + " Actual Method=" + targetMethod);
         }       
