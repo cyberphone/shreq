@@ -41,9 +41,6 @@ public class JSONRequestValidation extends ValidationCore {
     @Override
     protected void validateImplementation() throws IOException, 
                                                    GeneralSecurityException {
-        // 4.2 step 1-6 are already performed
-        
-        // 4.2:7
         shreqData = message.getObject(SHREQSupport.SHREQ_LABEL);
 
         String jwsString = shreqData.getString(SHREQSupport.SHREQ_JWS_STRING);
@@ -62,7 +59,7 @@ public class JSONRequestValidation extends ValidationCore {
 
         JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
-        // However, be nice and restore data after canonicalization
+        // However, be nice and restore the signature element after canonicalization
         JSONObjectWriter msg = new JSONObjectWriter(shreqData);
         msg.setupForRewrite(SHREQSupport.SHREQ_JWS_STRING);
         msg.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);

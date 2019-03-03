@@ -40,7 +40,6 @@ public class URIRequestValidation extends ValidationCore {
     @Override
     protected void validateImplementation() throws IOException,
                                                    GeneralSecurityException {
-        // 5.2:3-4
         int i = targetUri.indexOf(QUERY_STRING);
         if (i < 10) {
             error("URI lacks a signature ( " + QUERY_STRING + " ) element");
@@ -61,7 +60,7 @@ public class URIRequestValidation extends ValidationCore {
         if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.SHREQ_HASHED_NORMALIZED_URI),
                                SHREQSupport.getDigestedAndNormalizedURI(targetUri,
                                                                         signatureAlgorithm))) {
-            error("URI mismatch");
+            error("URI mismatch. Normalized URI: " + SHREQSupport.normalizeTargetURI(targetUri));
         }
     }
 

@@ -62,11 +62,27 @@ public class SHREQSupport {
                                                                     issuetAt.getTimeInMillis() / 1000));
     }
     
-    // 6.7
-    public static String normalizeTargetURI(String uri) {
-        // To be defined and implemented
-        // The famous "no-op" algorithm :)
-        return uri;
+    static final char[] BIG_HEX = {'0', '1', '2', '3', '4', '5', '6', '7',
+                                   '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    
+    public static String utf8EscapeUri(String uri) throws IOException {
+        StringBuilder escaped = new StringBuilder();
+        byte[] utf8 = uri.getBytes("utf-8");
+        for (byte b : utf8) {
+            if (b < 0) {
+                escaped.append('%')
+                       .append(BIG_HEX[(b & 0xf0) >> 4])
+                       .append(BIG_HEX[b & 0xf]);
+            } else {
+                escaped.append((char)b);
+            }
+        }
+        return escaped.toString();
+    }
+
+    public static String normalizeTargetURI(String uri) throws IOException {
+        // To be fully defined and implemented
+        return utf8EscapeUri(uri);
     }
 
     static byte[] getDigestedAndNormalizedURI(String uri, 
