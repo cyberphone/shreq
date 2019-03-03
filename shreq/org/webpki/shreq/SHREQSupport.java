@@ -35,17 +35,18 @@ public class SHREQSupport {
     public static final String SHREQ_HTTP_METHOD           = "mtd";
     public static final String SHREQ_ISSUED_AT_TIME        = "iat";
     public static final String SHREQ_JWS_STRING            = "jws";
+    public static final String SHREQ_HEADER_RECORD         = "hdr";
     
     public static final String SHREQ_DEFAULT_JSON_METHOD   = "POST";
     public static final String SHREQ_DEFAULT_URI_METHOD    = "GET";
     
     public static final String[] HTTP_METHODS              = {"GET", 
-    	                                                      "POST",
-    	                                                      "PUT", 
-    	                                                      "DELETE",
-    	                                                      "PATCH",
-    	                                                      "HEAD",
-    	                                                      "CONNECT"};
+                                                              "POST",
+                                                              "PUT", 
+                                                              "DELETE",
+                                                              "PATCH",
+                                                              "HEAD",
+                                                              "CONNECT"};
     
     public static JSONObjectWriter createJSONRequestHeader(String uri,
                                                            String method,

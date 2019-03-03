@@ -75,7 +75,11 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             length = 20;
         }
         for (int i = 0; i < length; i++) {
-          error.append("\n  at " + st[i].toString());
+            String entry = st[i].toString();
+            error.append("\n  at " + entry);
+            if (entry.contains("HttpServlet")) {
+                break;
+            }
         }
         return error.toString();
     }

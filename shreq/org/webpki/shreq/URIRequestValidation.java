@@ -54,8 +54,8 @@ public class URIRequestValidation extends ValidationCore {
             jwsString = targetUri.substring(i + QUERY_LENGTH, next);
             targetUri = targetUri.substring(0, i) + targetUri.substring(next + 1);
         }
-        decodeJwsString(jwsString, false);
 
+        decodeJwsString(jwsString, false);
         shreqData = JSONParser.parse(JWS_Payload);
 
         if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.SHREQ_HASHED_NORMALIZED_URI),

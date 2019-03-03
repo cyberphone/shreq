@@ -77,10 +77,10 @@ public abstract class ValidationCore {
         this.targetUri = targetUri;
         this.headerMap = headerMap;
         for (String method : SHREQSupport.HTTP_METHODS) {
-        	if (method.equals(targetMethod)) {
-        		this.targetMethod = targetMethod;
-        		return;
-        	}
+            if (method.equals(targetMethod)) {
+                this.targetMethod = targetMethod;
+                return;
+            }
         }
         error("Unsupported method: " + targetMethod);
     }
