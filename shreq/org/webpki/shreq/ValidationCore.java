@@ -140,6 +140,7 @@ public abstract class ValidationCore {
             issuedAt = new GregorianCalendar();
             issuedAt.setTimeInMillis(shreqData.getInt53(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000);
         }
+        shreqData.checkForUnread();
         validateSignature();
     }
 

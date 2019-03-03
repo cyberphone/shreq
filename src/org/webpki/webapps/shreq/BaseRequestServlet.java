@@ -158,6 +158,9 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             
             // Core Request Data Successfully Collected - Validate!
             validationCore.validate(this);
+
+            // In *this* service we don't accept any unread/unused JWS header variables
+            validationCore.getJwsProtectedHeader().checkForUnread();
             
             // Optional test
             if (enforceTimeStamp()) {
