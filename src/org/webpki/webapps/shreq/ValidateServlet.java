@@ -24,8 +24,10 @@ import java.security.PublicKey;
 
 import java.security.cert.X509Certificate;
 
+import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.servlet.ServletException;
@@ -180,6 +182,18 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                                           certificateData.toString(),
                                           "Core certificate data"));
             }
+            String time;
+            if (validationCore.getIssuedAt() == null) {
+                time = "Request does not contain a time stamp";
+            } else {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss 'UTC'");
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                time = sdf.format(validationCore.getIssuedAt().getTime());
+            }
+            html.append(HTML.fancyBox(
+                    "timestamp", 
+                    time,
+                    "Time stamp"));
             HTML.standardPage(response, null, html.append("<div style=\"padding:10pt\"></div>"));
         } catch (Exception e) {
             HTML.errorPage(response, e);
@@ -306,20 +320,8 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             "<div>&nbsp;</div>");
 
         StringBuilder js = new StringBuilder("\"use strict\";\n")
-        .append(SHREQService.keyDeclarations)
         .append(
-            "function fill(id, alg, keyHolder, unconditionally) {\n" +
-            "  let element = document.getElementById(id).children[1];\n" +
-            "  if (unconditionally || element.value == '') element.value = keyHolder[alg];\n" +
-            "}\n" +
-            "function disableAndClearCheckBox(id) {\n" +
-            "  let checkBox = document.getElementById(id);\n" +
-            "  checkBox.checked = false;\n" +
-            "  checkBox.disabled = true;\n" +
-            "}\n" +
-            "function enableCheckBox(id) {\n" +
-            "  document.getElementById(id).disabled = false;\n" +
-            "}\n" +
+
             "function setUserData(unconditionally) {\n" +
             "  let element = document.getElementById('" + JSON_PAYLOAD + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
@@ -356,6 +358,16 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             "function requestChange(jsonRequest) {\n" +
             "  document.getElementById('" + JSON_PAYLOAD + "').style.display= jsonRequest ? 'block' : 'none';\n" +
             "  setMethod(jsonRequest ? '" + DEFAULT_JSON_METHOD + "' : '" + DEFAULT_URI_METHOD + "');\n" +
+            "  let element = document.getElementById('" + TARGET_URI + "').children[1];\n" +
+            "  if (jsonRequest) {\n" +
+            "    if (element.value == '" + sampleUriRequestUri + "') {\n" +
+            "      element.value = '" + targetUri + "';\n" +
+            "    }\n" +
+            "  } else {\n" +
+            "    if (element.value == '" + targetUri + "') {\n" +
+            "      element.value = '" + sampleUriRequestUri + "';\n" +
+            "    }\n" +
+            "  }\n" +
             "}\n" +
             "function headerFlagChange(flag) {\n" +
             "  showHeaders(flag);\n" +

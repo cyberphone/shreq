@@ -127,6 +127,10 @@ public abstract class ValidationCore {
         return signatureAlgorithm;
     }
 
+    public GregorianCalendar getIssuedAt() {
+        return issuedAt;
+    }
+
     public void validate(ValidationKeyService validationKeyService) throws IOException,
                                                                            GeneralSecurityException {
         this.validationKeyService = validationKeyService;
