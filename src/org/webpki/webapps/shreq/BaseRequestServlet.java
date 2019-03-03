@@ -180,6 +180,9 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             // Houston, we got a problem...
             returnResponse(response, validationCore == null || !validationCore.isValidating() ?
                            HttpServletResponse.SC_BAD_REQUEST : HttpServletResponse.SC_UNAUTHORIZED,
+                    "                       *************\n" +
+                    "                       * E R R O R *\n" +
+                    "                       *************\n" +
                     getStackTrace(e) + (validationCore == null ? 
                             "Validation context not available" : validationCore.printCoreData()));
         }

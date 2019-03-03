@@ -56,97 +56,108 @@ public class CreateServlet extends BaseGuiServlet {
             throws IOException, ServletException {
         String targetUri = getDefaultUri(request);
         String selected = "ES256";
-        StringBuilder js = new StringBuilder("\"use strict\";\n")
-            .append(SHREQService.keyDeclarations);
         StringBuilder html = new StringBuilder(
-                "<form name=\"shoot\" method=\"POST\" action=\"create\">" +
-                "<div class=\"header\">SHREQ Message Creation</div>")
-            .append(
-                HTML.fancyText(
-                        true,
-                        TARGET_URI,
-                        1,
-                        "",
-                        "Target URI"))
+            "<form name=\"shoot\" method=\"POST\" action=\"create\">" +
+            "<div class=\"header\">SHREQ Message Creation</div>")
 
-            .append(
-                HTML.fancyText(
-                        true,
-                        JSON_PAYLOAD,
-                        10,
-                        "",
-                        "Paste an unsigned JSON object in the text box or try with the default"))
+        .append(
+            HTML.fancyText(
+                true,
+                TARGET_URI,
+                1,
+                "",
+                "Target URI"))
 
-            .append(
-                HTML.fancyText(
-                        false,
-                        OPT_HEADERS,
-                        4,
-                        "",
-                        "Optional HTTP headers, each on a separate line"))
+        .append(
+            HTML.fancyText(
+                true,
+                JSON_PAYLOAD,
+                10,
+                "",
+                "Paste an unsigned JSON object in the text box or try with the default"))
 
-            .append(getRequestParameters())
+        .append(
+            HTML.fancyText(
+                false,
+                TXT_OPT_HEADERS,
+                4,
+                "",
+                "Optional HTTP headers, each on a separate line"))
 
-            .append(parameterBox("Security Parameters",
-                new StringBuilder()
-                .append(
-                   "<div style=\"display:flex;align-items:center\">")
-                .append(new SelectAlg(selected)
-                     .add(MACAlgorithms.HMAC_SHA256)
-                     .add(MACAlgorithms.HMAC_SHA384)
-                     .add(MACAlgorithms.HMAC_SHA512)
-                     .add(AsymSignatureAlgorithms.ECDSA_SHA256)
-                     .add(AsymSignatureAlgorithms.ECDSA_SHA384)
-                     .add(AsymSignatureAlgorithms.ECDSA_SHA512)
-                     .add(AsymSignatureAlgorithms.RSA_SHA256)
-                     .add(AsymSignatureAlgorithms.RSA_SHA384)
-                     .add(AsymSignatureAlgorithms.RSA_SHA512)
-                     .toString())
-                .append(
-                    "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">Algorithm</div>" +
-                    "<div class=\"defbtn\" onclick=\"restoreSecurityDefaults()\">Restore&nbsp;defaults</div></div>")
-                .append(checkBox(FLG_JWK_INLINE, "Automagically insert public key (JWK)", 
-                                 false, "jwkFlagChange(this.checked)"))
-                .append(checkBox(FLG_CERT_PATH, "Include provided certificate path (X5C)", 
-                                 false, "certFlagChange(this.checked)"))
-                .append(checkBox(FLG_DEF_METHOD, "Include method also when default", 
-                                 false, null))
-                .append(checkBox(FLG_IAT_PRESENT, "Include time stamp (IAT)", 
-                                 true, null))))
+        .append(getRequestParameters())
+
+        .append(parameterBox("Security Parameters",
+            new StringBuilder()
             .append(
-                "<div style=\"display:flex;justify-content:center\">" +
-                "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +
-                "Create Signed Request" +
-                "</div>" +
-                "</div>")
+               "<div style=\"display:flex;align-items:center\">")
+            .append(new SelectAlg(selected)
+                 .add(MACAlgorithms.HMAC_SHA256)
+                 .add(MACAlgorithms.HMAC_SHA384)
+                 .add(MACAlgorithms.HMAC_SHA512)
+                 .add(AsymSignatureAlgorithms.ECDSA_SHA256)
+                 .add(AsymSignatureAlgorithms.ECDSA_SHA384)
+                 .add(AsymSignatureAlgorithms.ECDSA_SHA512)
+                 .add(AsymSignatureAlgorithms.RSA_SHA256)
+                 .add(AsymSignatureAlgorithms.RSA_SHA384)
+                 .add(AsymSignatureAlgorithms.RSA_SHA512)
+                 .toString())
             .append(
-                HTML.fancyText(true,
-                          PRM_JWS_EXTRA,
-                          4,
-                          "",
-                          "Additional JWS header parameters (here expressed as properties of a JSON object)"))
-            .append(
-                HTML.fancyText(false,
-                          PRM_SECRET_KEY,
-                          1,
-                          "",
-                          "Secret key in hexadecimal format"))
-            .append(
-                HTML.fancyText(false,
-                          PRM_PRIVATE_KEY,
-                          4,
-                          "",
-                          "Private key in PEM/PKCS #8 or &quot;plain&quot; JWK format"))
-            .append(
-                HTML.fancyText(false,
-                          PRM_CERT_PATH,
-                          4,
-                          "",
-                          "Certificate path in PEM format"))
-            .append(
-                "</form>" +
-                "<div>&nbsp;</div>");
-        js.append(
+                "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">Algorithm</div>" +
+                "<div class=\"defbtn\" onclick=\"restoreSecurityDefaults()\">Restore&nbsp;defaults</div></div>")
+            .append(checkBox(FLG_JWK_INLINE, "Automagically insert public key (JWK)", 
+                             false, "jwkFlagChange(this.checked)"))
+            .append(checkBox(FLG_CERT_PATH, "Include provided certificate path (X5C)", 
+                             false, "certFlagChange(this.checked)"))
+            .append(checkBox(FLG_DEF_METHOD, "Include method also when default", 
+                             false, null))
+            .append(checkBox(FLG_IAT_PRESENT, "Include time stamp (IAT)", 
+                             true, null))))
+        .append(
+            "<div style=\"display:flex;justify-content:center\">" +
+            "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +
+            "Create Signed Request" +
+            "</div>" +
+            "</div>")
+
+        .append(
+            HTML.fancyText(
+                true,
+                TXT_JWS_EXTRA,
+                4,
+                "",
+                "Additional JWS header parameters (here expressed as properties of a JSON object)"))
+
+        .append(
+            HTML.fancyText(
+                false,
+                TXT_SECRET_KEY,
+                1,
+                "",
+                "Secret key in hexadecimal format"))
+
+        .append(
+            HTML.fancyText(
+                false,
+                TXT_PRIVATE_KEY,
+                4,
+                "",
+                "Private key in PEM/PKCS #8 or &quot;plain&quot; JWK format"))
+
+        .append(
+            HTML.fancyText(
+                false,
+                TXT_CERT_PATH,
+                4,
+                "",
+                "Certificate path in PEM format"))
+
+        .append(
+            "</form>" +
+            "<div>&nbsp;</div>");
+
+        StringBuilder js = new StringBuilder("\"use strict\";\n")
+        .append(SHREQService.keyDeclarations)
+        .append(
             "function fill(id, alg, keyHolder, unconditionally) {\n" +
             "  let element = document.getElementById(id).children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = keyHolder[alg];\n" +
@@ -162,14 +173,14 @@ public class CreateServlet extends BaseGuiServlet {
             "function setUserData(unconditionally) {\n" +
             "  let element = document.getElementById('" + JSON_PAYLOAD + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
-          .append(HTML.javaScript(TEST_MESSAGE))
-          .append("';\n" +
-            "  element = document.getElementById('" + PRM_JWS_EXTRA + "').children[1];\n" +
+        .append(HTML.javaScript(TEST_MESSAGE))
+        .append("';\n" +
+            "  element = document.getElementById('" + TXT_JWS_EXTRA + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '{\\n}';\n" +
             "  element = document.getElementById('" + TARGET_URI + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
-         .append(targetUri)
-         .append("';\n" +
+        .append(targetUri)
+        .append("';\n" +
             "}\n" +
             "function setParameters(alg, unconditionally) {\n" +
             "  if (alg.startsWith('HS')) {\n" +
@@ -177,17 +188,17 @@ public class CreateServlet extends BaseGuiServlet {
             "    showPriv(false);\n" +
             "    disableAndClearCheckBox('" + FLG_CERT_PATH + "');\n" +
             "    disableAndClearCheckBox('" + FLG_JWK_INLINE + "');\n" +
-            "    fill('" + PRM_SECRET_KEY + "', alg, " + 
+            "    fill('" + TXT_SECRET_KEY + "', alg, " + 
                  SHREQService.KeyDeclaration.SECRET_KEYS + ", unconditionally);\n" +
             "    showSec(true)\n" +
             "  } else {\n" +
             "    showSec(false)\n" +
             "    enableCheckBox('" + FLG_CERT_PATH + "');\n" +
             "    enableCheckBox('" + FLG_JWK_INLINE + "');\n" +
-            "    fill('" + PRM_PRIVATE_KEY + "', alg, " + 
+            "    fill('" + TXT_PRIVATE_KEY + "', alg, " + 
             SHREQService.KeyDeclaration.PRIVATE_KEYS + ", unconditionally);\n" +
             "    showPriv(true);\n" +
-            "    fill('" + PRM_CERT_PATH + "', alg, " + 
+            "    fill('" + TXT_CERT_PATH + "', alg, " + 
             SHREQService.KeyDeclaration.CERTIFICATES + ", unconditionally);\n" +
             "    showCert(document.getElementById('" + FLG_CERT_PATH + "').checked);\n" +
             "  }\n" +
@@ -205,7 +216,7 @@ public class CreateServlet extends BaseGuiServlet {
             "  }\n" +
             "}\n" +
             "function restoreSecurityDefaults() {\n" +
-            "  let s = document.getElementById('" + PRM_ALGORITHM + "');\n" +
+            "  let s = document.getElementById('" + PRM_JWS_ALGORITHM + "');\n" +
             "  for (let i = 0; i < s.options.length; i++) {\n" +
             "    if (s.options[i].text == '" + DEFAULT_ALGORITHM + "') {\n" +
             "      s.options[i].selected = true;\n" +
@@ -225,16 +236,16 @@ public class CreateServlet extends BaseGuiServlet {
             "  document.getElementById('" + JSON_PAYLOAD + "').style.display= show ? 'block' : 'none';\n" +
             "}\n" +
             "function showCert(show) {\n" +
-            "  document.getElementById('" + PRM_CERT_PATH + "').style.display= show ? 'block' : 'none';\n" +
+            "  document.getElementById('" + TXT_CERT_PATH + "').style.display= show ? 'block' : 'none';\n" +
             "}\n" +
             "function showPriv(show) {\n" +
-            "  document.getElementById('" + PRM_PRIVATE_KEY + "').style.display= show ? 'block' : 'none';\n" +
+            "  document.getElementById('" + TXT_PRIVATE_KEY + "').style.display= show ? 'block' : 'none';\n" +
             "}\n" +
             "function showSec(show) {\n" +
-            "  document.getElementById('" + PRM_SECRET_KEY + "').style.display= show ? 'block' : 'none';\n" +
+            "  document.getElementById('" + TXT_SECRET_KEY + "').style.display= show ? 'block' : 'none';\n" +
             "}\n" +
             "function setMethod(method) {\n" +
-            "  let s = document.getElementById('" + HTTP_METHOD + "');\n" +
+            "  let s = document.getElementById('" + PRM_HTTP_METHOD + "');\n" +
             "  for (let i = 0; i < s.options.length; i++) {\n" +
             "    if (s.options[i].text == method) {\n" +
             "      s.options[i].selected = true;\n" +
@@ -243,10 +254,10 @@ public class CreateServlet extends BaseGuiServlet {
             "  }\n" +
             "}\n" +
             "function showHeaders(show) {\n" +
-            "  document.getElementById('" + OPT_HEADERS + "').style.display= show ? 'block' : 'none';\n" +
+            "  document.getElementById('" + TXT_OPT_HEADERS + "').style.display= show ? 'block' : 'none';\n" +
             "}\n" +
             "function restoreRequestDefaults() {\n" +
-            "  let radioButtons = document.getElementsByName('" + PRM_SCHEME + "');\n" +
+            "  let radioButtons = document.getElementsByName('" + REQUEST_TYPE + "');\n" +
             "  radioButtons[0].checked = true;\n" +
             "  requestChange(true);\n" +
             "  document.getElementById('" + FLG_HEADERS + "').checked = false;\n" +
@@ -260,15 +271,13 @@ public class CreateServlet extends BaseGuiServlet {
             "  showHeaders(flag);\n" +
             "}\n" +
             "window.addEventListener('load', function(event) {\n" +
-            "  setParameters(document.getElementById('" + PRM_ALGORITHM + "').value, false);\n" +
-            "  let radioButtons = document.getElementsByName('" + PRM_SCHEME + "');\n" +
+            "  setParameters(document.getElementById('" + PRM_JWS_ALGORITHM + "').value, false);\n" +
+            "  let radioButtons = document.getElementsByName('" + REQUEST_TYPE + "');\n" +
             "  showJson(radioButtons[0].checked);\n" +
             "  showHeaders(document.getElementById('" + FLG_HEADERS + "').checked);\n" +
             "  setUserData(false);\n" +
             "});\n");
-        HTML.standardPage(response, 
-                         js.toString(),
-                         html);
+        HTML.standardPage(response, js.toString(), html);
     }
     
     public void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -277,15 +286,15 @@ public class CreateServlet extends BaseGuiServlet {
             request.setCharacterEncoding("utf-8");
             String targetUri = SHREQSupport.utf8EscapeUri(getTextArea(request, TARGET_URI));
             String jsonData = getTextArea(request, JSON_PAYLOAD);
-            String method = getParameter(request, HTTP_METHOD);
-            boolean jsonRequest = new Boolean(getParameter(request, PRM_SCHEME));
-            JSONObjectReader additionalHeaderData = JSONParser.parse(getParameter(request, PRM_JWS_EXTRA));
+            String method = getParameter(request, PRM_HTTP_METHOD);
+            boolean jsonRequest = new Boolean(getParameter(request, REQUEST_TYPE));
+            JSONObjectReader additionalHeaderData = JSONParser.parse(getParameter(request, TXT_JWS_EXTRA));
             boolean keyInlining = request.getParameter(FLG_JWK_INLINE) != null;
             boolean certOption = request.getParameter(FLG_CERT_PATH) != null;
             boolean iatOption = request.getParameter(FLG_IAT_PRESENT) != null;
             boolean forceMethod = request.getParameter(FLG_DEF_METHOD) != null;
             SignatureAlgorithms algorithm = 
-                    JOSESupport.getSignatureAlgorithm(getParameter(request, PRM_ALGORITHM));
+                    JOSESupport.getSignatureAlgorithm(getParameter(request, PRM_JWS_ALGORITHM));
 
             // Create the minimal JWS header
             JSONObjectWriter JWS_Protected_Header =
@@ -302,12 +311,12 @@ public class CreateServlet extends BaseGuiServlet {
             
             // Symmetric or asymmetric?
             if (algorithm.isSymmetric()) {
-                validationKey = getParameter(request, PRM_SECRET_KEY);
+                validationKey = getParameter(request, TXT_SECRET_KEY);
                 keyHolder = new JOSESymKeyHolder(DebugFormatter.getByteArrayFromHex(validationKey));
             } else {
                 // To simplify UI we require PKCS #8 with the public key embedded
                 // but we also support JWK which also has the public key
-                byte[] privateKeyBlob = getBinaryParameter(request, PRM_PRIVATE_KEY);
+                byte[] privateKeyBlob = getBinaryParameter(request, TXT_PRIVATE_KEY);
                 KeyPair keyPair;
                 if (privateKeyBlob[0] == '{') {
                     keyPair = JSONParser.parse(privateKeyBlob).getKeyPair();
@@ -323,7 +332,7 @@ public class CreateServlet extends BaseGuiServlet {
                 if (certOption) {
                     JOSESupport.setCertificatePath(JWS_Protected_Header,
                             PEMDecoder.getCertificatePath(getBinaryParameter(request,
-                                                                             PRM_CERT_PATH)));
+                                                                             TXT_CERT_PATH)));
                 } else if (keyInlining) {
                     JOSESupport.setPublicKey(JWS_Protected_Header, keyPair.getPublic());
                 }
@@ -379,30 +388,34 @@ public class CreateServlet extends BaseGuiServlet {
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null,
                                 algorithm);
-                byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.NORMALIZED);
-                String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
-                                                                  JWS_Payload,
-                                                                  keyHolder,
-                                                                  false);
-                targetUri += (targetUri.contains("?") ?
-                        '&' : '?') + SHREQSupport.SHREQ_LABEL + "=" + jwsString;
+                targetUri = SHREQSupport.addJwsToTargetUri(
+                        targetUri,
+                        JOSESupport.createJwsSignature(
+                                JWS_Protected_Header, 
+                                writer.serializeToBytes(JSONOutputFormats.NORMALIZED),
+                                keyHolder,
+                                false));
             }
 
             // We terminate by validating the signature as well
             request.getRequestDispatcher("validate?" +
-                ValidateServlet.JSON_PAYLOAD + 
-                "=" +
-                URLEncoder.encode(signedJSONRequest, "utf-8") +
-                "&" +
-                ValidateServlet.TARGET_URI + 
+                TARGET_URI + 
                 "=" +
                 URLEncoder.encode(targetUri, "utf-8") +
                 "&" +
-                ValidateServlet.JWS_VALIDATION_KEY + 
+                REQUEST_TYPE + 
+                "=" +
+                jsonRequest +
+                "&" +
+                JSON_PAYLOAD + 
+                "=" +
+                URLEncoder.encode(signedJSONRequest, "utf-8") +
+                "&" +
+                JWS_VALIDATION_KEY + 
                 "=" +
                 URLEncoder.encode(validationKey, "utf-8") +
                 "&" +
-                ValidateServlet.HTTP_METHOD + 
+                PRM_HTTP_METHOD + 
                 "=" +
                 URLEncoder.encode(method, "utf-8"))
                     .forward(request, response);

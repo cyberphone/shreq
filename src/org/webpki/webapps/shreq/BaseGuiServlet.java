@@ -35,27 +35,27 @@ public class BaseGuiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     // HTML form arguments
+    static final String TARGET_URI         = "uri";
+    
+    static final String REQUEST_TYPE       = "reqtyp";  // True = JSON else URI
+
     static final String JSON_PAYLOAD       = "json";
 
     static final String JWS_VALIDATION_KEY = "vkey";
     
-    static final String TARGET_URI         = "uri";
-    
-    static final String HTTP_METHOD        = "mtd";
+    static final String PRM_HTTP_METHOD    = "mtd";
 
-    static final String OPT_HEADERS        = "hdrs";
+    static final String TXT_OPT_HEADERS    = "hdrs";
 
-    static final String PRM_JWS_EXTRA      = "xtra";
+    static final String TXT_JWS_EXTRA      = "xtra";
 
-    static final String PRM_SECRET_KEY     = "sec";
+    static final String TXT_SECRET_KEY     = "sec";
 
-    static final String PRM_PRIVATE_KEY    = "priv";
+    static final String TXT_PRIVATE_KEY    = "priv";
 
-    static final String PRM_CERT_PATH      = "cert";
+    static final String TXT_CERT_PATH      = "cert";
 
-    static final String PRM_ALGORITHM      = "alg";
-
-    static final String PRM_SCHEME         = "scheme";
+    static final String PRM_JWS_ALGORITHM  = "alg";
 
     static final String FLG_CERT_PATH      = "cerflg";
     static final String FLG_JWK_INLINE     = "jwkflg";
@@ -66,8 +66,6 @@ public class BaseGuiServlet extends HttpServlet {
     static final String DEFAULT_ALGORITHM   = "ES256";
     static final String DEFAULT_JSON_METHOD = "POST";
     static final String DEFAULT_URI_METHOD  = "GET";
-    
-    static String sampleRequest;
     
     static final String TEST_MESSAGE = 
             "{\n" +
@@ -91,7 +89,7 @@ public class BaseGuiServlet extends HttpServlet {
     static class SelectMethod {
 
         StringBuilder html = new StringBuilder("<select name=\"" +
-                HTTP_METHOD + "\" id=\"" + HTTP_METHOD + "\">");
+                PRM_HTTP_METHOD + "\" id=\"" + PRM_HTTP_METHOD + "\">");
         
         SelectMethod() {
             for (String method : SHREQSupport.HTTP_METHODS) {
@@ -114,8 +112,8 @@ public class BaseGuiServlet extends HttpServlet {
 
         String preSelected;
         StringBuilder html = new StringBuilder("<select name=\"" +
-                PRM_ALGORITHM + "\" id=\"" +
-                PRM_ALGORITHM + "\" onchange=\"algChange(this.value)\">");
+                PRM_JWS_ALGORITHM + "\" id=\"" +
+                PRM_JWS_ALGORITHM + "\" onchange=\"algChange(this.value)\">");
         
         SelectAlg(String preSelected) {
             this.preSelected = preSelected;
@@ -203,8 +201,8 @@ public class BaseGuiServlet extends HttpServlet {
            .append(
                "<div style=\"display:inline-block;padding:0 10pt 0 5pt\">HTTP Method</div>" +
                "<div class=\"defbtn\" onclick=\"restoreRequestDefaults()\">Restore&nbsp;defaults</div></div>")
-           .append(radioButton(PRM_SCHEME, "JSON based request", "true", true, "requestChange(true)"))
-           .append(radioButton(PRM_SCHEME, "URI based request", "false", false, "requestChange(false)"))
+           .append(radioButton(REQUEST_TYPE, "JSON based request", "true", true, "requestChange(true)"))
+           .append(radioButton(REQUEST_TYPE, "URI based request", "false", false, "requestChange(false)"))
            .append(checkBox(FLG_HEADERS, "Include HTTP headers as well", 
                                  false, "headerFlagChange(this.checked)")));
     }

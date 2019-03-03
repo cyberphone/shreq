@@ -62,6 +62,9 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
 
     private static final long serialVersionUID = 1L;
 
+    static String sampleJsonRequest_JS;
+    static String sampleUriRequestUri;
+    
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
         try {
@@ -72,10 +75,10 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             logger.info("JSON Signature Verification Entered");
             // Get the two input data items
             String signedJsonObject = getParameter(request, JSON_PAYLOAD);
-            boolean jsonRequest = signedJsonObject.length() > 0;
+            boolean jsonRequest = new Boolean(getParameter(request, REQUEST_TYPE));
             String targetUri = getParameter(request, TARGET_URI);
             String validationKey = getParameter(request, JWS_VALIDATION_KEY);
-            String targetMethod = getParameter(request, HTTP_METHOD);
+            String targetMethod = getParameter(request, PRM_HTTP_METHOD);
             LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
             ValidationCore validationCore = null;
 
@@ -204,8 +207,8 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-
-        if (sampleRequest == null) {
+        String targetUri = getDefaultUri(request);
+        if (sampleJsonRequest_JS == null) {
             synchronized(this) {
                 JSONObjectWriter JWS_Protected_Header =
                         JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
@@ -214,8 +217,8 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                         new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
                 
                 JSONObjectWriter shreqObject = 
-                        SHREQSupport.createJSONRequestHeader(getDefaultUri(request),
-                                                             "POST",
+                        SHREQSupport.createJSONRequestHeader(targetUri,
+                                                             SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
                                                              new GregorianCalendar());
                 writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
                 byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
@@ -234,44 +237,135 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                     // Create the completed object which now is in "writer"
                     shreqObject.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
                     
-                    sampleRequest = writer.serializeToString(JSONOutputFormats.PRETTY_PRINT);
+                    sampleJsonRequest_JS =
+                            HTML.javaScript(writer.serializeToString(JSONOutputFormats.PRETTY_PRINT));
+
+                    shreqObject = 
+                            SHREQSupport.createURIRequestPayload(targetUri,
+                                                                 SHREQSupport.SHREQ_DEFAULT_URI_METHOD,
+                                                                 new GregorianCalendar(),
+                                                                 AsymSignatureAlgorithms.ECDSA_SHA256);
+                    sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
+                            targetUri,
+                            JOSESupport.createJwsSignature(
+                                    JWS_Protected_Header, 
+                                    shreqObject.serializeToBytes(JSONOutputFormats.NORMALIZED),
+                                    new JOSEAsymKeyHolder(privateKey),
+                                    false));
 
                 } catch (GeneralSecurityException e) {
-                    sampleRequest = "Internal error - Call admin";
+                    sampleJsonRequest_JS = "Internal error - Call admin";
                 }
             }
         }
-        HTML.standardPage(response, null, new StringBuilder(
-                "<form name=\"shoot\" method=\"POST\" action=\"validate\">" +
-                "<div class=\"header\">SHREQ Message Validation</div>")
-            .append(HTML.fancyText(true,
+        StringBuilder html = new StringBuilder(
+            "<form name=\"shoot\" method=\"POST\" action=\"validate\">" +
+            "<div class=\"header\">SHREQ Message Validation</div>")
+
+        .append(
+            HTML.fancyText(
+                true,
                 TARGET_URI,
                 1, 
-                HTML.encode(getDefaultUri(request)),
+                HTML.encode(targetUri),
                 "Target URI"))
-            .append(HTML.fancyText(true,
-                HTTP_METHOD,
-                1, 
-                HTML.encode("POST"),
-                "Anticipated method"))
-            .append(HTML.fancyText(true,
+
+        .append(
+            HTML.fancyText(
+                true,
                 JSON_PAYLOAD,
                 10, 
-                HTML.encode(sampleRequest),
+                "",
                 "Paste a signed JSON request in the text box or try with the default"))
-            .append(HTML.fancyText(true,
+
+        .append(
+            HTML.fancyText(
+                false,
+                TXT_OPT_HEADERS,
+                4,
+                "",
+                "Optional HTTP headers, each on a separate line"))
+
+        .append(getRequestParameters())
+
+        .append(
+            HTML.fancyText(
+                true,
                 JWS_VALIDATION_KEY,
                 4, 
                 HTML.encode(SHREQService.sampleKey),
 "Validation key (secret key in hexadecimal or public key in PEM or &quot;plain&quot; JWK format)"))
 
-            .append(
-                "<div style=\"display:flex;justify-content:center\">" +
-                "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +
-                "Validate Signed Request" +
-                "</div>" +
-                "</div>" +
-                "</form>" +
-                "<div>&nbsp;</div>"));
+        .append(
+            "<div style=\"display:flex;justify-content:center\">" +
+            "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +
+            "Validate Signed Request" +
+            "</div>" +
+            "</div>" +
+            "</form>" +
+            "<div>&nbsp;</div>");
+
+        StringBuilder js = new StringBuilder("\"use strict\";\n")
+        .append(SHREQService.keyDeclarations)
+        .append(
+            "function fill(id, alg, keyHolder, unconditionally) {\n" +
+            "  let element = document.getElementById(id).children[1];\n" +
+            "  if (unconditionally || element.value == '') element.value = keyHolder[alg];\n" +
+            "}\n" +
+            "function disableAndClearCheckBox(id) {\n" +
+            "  let checkBox = document.getElementById(id);\n" +
+            "  checkBox.checked = false;\n" +
+            "  checkBox.disabled = true;\n" +
+            "}\n" +
+            "function enableCheckBox(id) {\n" +
+            "  document.getElementById(id).disabled = false;\n" +
+            "}\n" +
+            "function setUserData(unconditionally) {\n" +
+            "  let element = document.getElementById('" + JSON_PAYLOAD + "').children[1];\n" +
+            "  if (unconditionally || element.value == '') element.value = '")
+        .append(sampleJsonRequest_JS)
+        .append("';\n" +
+            "  element = document.getElementById('" + TARGET_URI + "').children[1];\n" +
+            "  if (unconditionally || element.value == '') element.value = '")
+        .append(targetUri)
+        .append("';\n" +
+            "}\n" +
+            "function showJson(show) {\n" +
+            "  document.getElementById('" + JSON_PAYLOAD + "').style.display= show ? 'block' : 'none';\n" +
+            "}\n" +
+            "function setMethod(method) {\n" +
+            "  let s = document.getElementById('" + PRM_HTTP_METHOD + "');\n" +
+            "  for (let i = 0; i < s.options.length; i++) {\n" +
+            "    if (s.options[i].text == method) {\n" +
+            "      s.options[i].selected = true;\n" +
+            "      break;\n" +
+            "    }\n" +
+            "  }\n" +
+            "}\n" +
+            "function showHeaders(show) {\n" +
+            "  document.getElementById('" + TXT_OPT_HEADERS + "').style.display= show ? 'block' : 'none';\n" +
+            "}\n" +
+            "function restoreRequestDefaults() {\n" +
+            "  let radioButtons = document.getElementsByName('" + REQUEST_TYPE + "');\n" +
+            "  radioButtons[0].checked = true;\n" +
+            "  requestChange(true);\n" +
+            "  document.getElementById('" + FLG_HEADERS + "').checked = false;\n" +
+            "  showHeaders(false);\n" +
+            "  setUserData(true);\n" +
+            "}\n" +
+            "function requestChange(jsonRequest) {\n" +
+            "  document.getElementById('" + JSON_PAYLOAD + "').style.display= jsonRequest ? 'block' : 'none';\n" +
+            "  setMethod(jsonRequest ? '" + DEFAULT_JSON_METHOD + "' : '" + DEFAULT_URI_METHOD + "');\n" +
+            "}\n" +
+            "function headerFlagChange(flag) {\n" +
+            "  showHeaders(flag);\n" +
+            "}\n" +
+            "window.addEventListener('load', function(event) {\n" +
+            "  let radioButtons = document.getElementsByName('" + REQUEST_TYPE + "');\n" +
+            "  showJson(radioButtons[0].checked);\n" +
+            "  showHeaders(document.getElementById('" + FLG_HEADERS + "').checked);\n" +
+            "  setUserData(false);\n" +
+            "});\n");
+        HTML.standardPage(response, js.toString(), html);
     }
 }

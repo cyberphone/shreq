@@ -81,6 +81,11 @@ public class SHREQSupport {
         return escaped.toString();
     }
 
+    public static String addJwsToTargetUri(String targetUri, String jwsString) {
+        return targetUri + (targetUri.contains("?") ?
+                '&' : '?') + SHREQSupport.SHREQ_LABEL + "=" + jwsString;
+    }
+
     static String normalizeTargetURI(String uri) throws IOException {
         // To be fully defined and implemented
         return utf8EscapeUri(uri);
