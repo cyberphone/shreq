@@ -171,9 +171,9 @@ public abstract class ValidationCore {
                     .append('\n');
         }
         coreData.append("\nJWS Header:\n")
-                .append(JWS_Protected_Header.toString())
+                .append(JWS_Protected_Header == null ? "Not available\n" : JWS_Protected_Header.toString())
                 .append("\nSHREQ Record:\n")
-                .append(shreqData.toString());
+                .append(shreqData == null ? "Not available" : shreqData.toString());
         return coreData.toString();
     }
 
