@@ -40,27 +40,28 @@ public class URIRequestValidation extends ValidationCore {
     @Override
     protected void validateImplementation() throws IOException,
                                                    GeneralSecurityException {
-        int i = targetUri.indexOf(QUERY_STRING);
+        int i = normalizedTargetUri.indexOf(QUERY_STRING);
         if (i < 10) {
             error("URI lacks a signature ( " + QUERY_STRING + " ) element");
         }
-        int next = targetUri.indexOf('&', i);
+        int next = normalizedTargetUri.indexOf('&', i);
         String jwsString;
         if (next < 0) {
-            jwsString = targetUri.substring(i + QUERY_LENGTH);
-            targetUri = targetUri.substring(0, i - 1);
+            jwsString = normalizedTargetUri.substring(i + QUERY_LENGTH);
+            normalizedTargetUri = normalizedTargetUri.substring(0, i - 1);
         } else {
-            jwsString = targetUri.substring(i + QUERY_LENGTH, next);
-            targetUri = targetUri.substring(0, i) + targetUri.substring(next + 1);
+            jwsString = normalizedTargetUri.substring(i + QUERY_LENGTH, next);
+            normalizedTargetUri = 
+                    normalizedTargetUri.substring(0, i) + normalizedTargetUri.substring(next + 1);
         }
 
         decodeJwsString(jwsString, false);
         shreqData = JSONParser.parse(JWS_Payload);
 
         if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.SHREQ_HASHED_NORMALIZED_URI),
-                               SHREQSupport.getDigestedAndNormalizedURI(targetUri,
-                                                                        signatureAlgorithm))) {
-            error("URI mismatch. Normalized URI: " + SHREQSupport.normalizeTargetURI(targetUri));
+                               SHREQSupport.getDigestedURI(normalizedTargetUri,
+                                                           signatureAlgorithm))) {
+            error("URI mismatch. Normalized URI: " + normalizedTargetUri);
         }
     }
 

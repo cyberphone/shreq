@@ -128,10 +128,10 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             StringBuilder html = new StringBuilder(
                     "<div class=\"header\">Request Successfully Validated</div>")
                 .append(HTML.fancyBox("targeturi", targetUri, 
-                    "Target URI to be accessed by a [" + targetMethod + "] request"));  
+                    "Target URI to be accessed by an HTTP " + targetMethod + " request"));  
             if (jsonRequest) {
                 html.append(HTML.fancyBox("httpjsonbody", signedJsonObject, 
-                                      "JSON object (HTTP body) signed by the embedded JWS element"));
+                                      "HTTP Body - JSON object signed by an embedded JWS element"));
             }
             html.append(HTML.fancyBox("jwsheader", 
                                       validationCore.getJwsProtectedHeader()

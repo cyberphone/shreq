@@ -53,7 +53,7 @@ public abstract class ValidationCore {
     
     private ValidationKeyService validationKeyService;
     
-    protected String targetUri;
+    protected String normalizedTargetUri;
     
     protected String targetMethod;
     
@@ -74,7 +74,7 @@ public abstract class ValidationCore {
     protected ValidationCore(String targetUri,
                              String targetMethod,
                              LinkedHashMap<String, String> headerMap) throws IOException {
-        this.targetUri = targetUri;
+        this.normalizedTargetUri = SHREQSupport.normalizeTargetURI(targetUri);
         this.headerMap = headerMap;
         for (String method : SHREQSupport.HTTP_METHODS) {
             if (method.equals(targetMethod)) {
@@ -162,7 +162,7 @@ public abstract class ValidationCore {
         StringBuilder coreData = new StringBuilder("\nReceived Headers:\n")
             .append(targetMethod)
             .append(' ')
-            .append(targetUri)
+            .append(normalizedTargetUri)
             .append('\n');
         for (String header : headerMap.keySet()) {
             coreData.append(header)

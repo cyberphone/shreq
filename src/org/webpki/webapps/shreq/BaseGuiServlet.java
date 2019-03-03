@@ -17,6 +17,7 @@
 package org.webpki.webapps.shreq;
 
 import java.io.IOException;
+
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.SignatureAlgorithms;
+
 import org.webpki.shreq.SHREQSupport;
 
 public class BaseGuiServlet extends HttpServlet {
@@ -65,9 +67,6 @@ public class BaseGuiServlet extends HttpServlet {
     static final String DEFAULT_JSON_METHOD = "POST";
     static final String DEFAULT_URI_METHOD  = "GET";
     
-    static final String EXTCONFREQ             = "/extconfreq";
-    static final String PRECONFREQ             = "/preconfreq";
-  
     static String sampleRequest;
     
     static final String TEST_MESSAGE = 
@@ -83,7 +82,7 @@ public class BaseGuiServlet extends HttpServlet {
             synchronized(CreateServlet.class) {
                 String url = BaseRequestServlet.getUrlFromRequest(request);
                 _defaultTargetUri = url.substring(0, url.indexOf("/shreq/") + 6) +
-                        PRECONFREQ + "?id=456";
+                        BaseRequestServlet.PRECONFREQ + "?id=456";
             }
         }
         return _defaultTargetUri;

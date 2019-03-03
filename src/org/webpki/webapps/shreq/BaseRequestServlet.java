@@ -27,7 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -60,6 +59,9 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
     
     private static final String JSON_CONTENT   = "application/json";
 
+    static final String EXTCONFREQ             = "/extconfreq";
+    static final String PRECONFREQ             = "/preconfreq";
+  
     static Logger logger = Logger.getLogger(BaseRequestServlet.class.getName());
 
     protected abstract boolean externallyConfigured(); 
@@ -98,6 +100,14 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         return false;
     }
     
+    private void returnResponse(HttpServletResponse response, int status, String text) throws IOException {
+        response.resetBuffer();
+        response.setStatus(status);
+        response.getOutputStream().write(text.getBytes("utf-8"));;
+        response.setHeader(CONTENT_TYPE, "text/plain;utf-8");       
+        response.flushBuffer();
+    }
+    
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -134,7 +144,11 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
                 // 4.2 JSON Request
                 if (!JSON_CONTENT.equals(request.getHeader(CONTENT_TYPE))) {
-                    throw new IOException(CONTENT_TYPE + "=" + request.getHeader(CONTENT_TYPE));
+                    throw new IOException(CONTENT_TYPE +
+                                          "=" +
+                                          request.getHeader(CONTENT_TYPE) +
+                                          " must be=" +
+                                          JSON_CONTENT);
                 }
                 validationCore = new JSONRequestValidation(targetUri,
                                                            targetMethod,
@@ -151,35 +165,26 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             }
 
             // No exceptions => We did it!
-            response.resetBuffer();
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.setHeader(CONTENT_TYPE, "text/plain;utf-8");
-            ServletOutputStream os = response.getOutputStream();
-            os.println("                  |====================|\n" +
-                       "                  | SUCCESSFUL REQUEST |\n" +
-                       "                  |====================|");
-            os.print(validationCore.printCoreData());
-            response.flushBuffer();
+            returnResponse(response, HttpServletResponse.SC_OK,
+                    "                  |====================|\n" +
+                    "                  | SUCCESSFUL REQUEST |\n" +
+                    "                  |====================|\n" +
+                    validationCore.printCoreData());
+
 
         } catch (Exception e) {
+
             // Houston, we got a problem...
-            response.resetBuffer();
-            response.setStatus(validationCore == null || !validationCore.isValidating() ?
-                HttpServletResponse.SC_BAD_REQUEST : HttpServletResponse.SC_UNAUTHORIZED);
-            response.setHeader(CONTENT_TYPE, "text/plain;utf-8");
-            ServletOutputStream os = response.getOutputStream();
-            os.println(getStackTrace(e));
-            if (validationCore == null) {
-                os.println("Validation context not available");
-            } else {
-                os.print(validationCore.printCoreData());
-            }
-            response.flushBuffer();
+            returnResponse(response, validationCore == null || !validationCore.isValidating() ?
+                           HttpServletResponse.SC_BAD_REQUEST : HttpServletResponse.SC_UNAUTHORIZED,
+                    getStackTrace(e) + (validationCore == null ? 
+                            "Validation context not available" : validationCore.printCoreData()));
         }
     }
 
     void extConfError() throws IOException {
-        throw new IOException("'" + BaseGuiServlet.EXTCONFREQ +
+        throw new IOException("'" + 
+                              EXTCONFREQ +
                               "' only supports requests with in-lined asymmetric JWKs and X5Cs");
     }
 

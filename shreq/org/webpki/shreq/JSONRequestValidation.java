@@ -46,10 +46,7 @@ public class JSONRequestValidation extends ValidationCore {
         String jwsString = shreqData.getString(SHREQSupport.SHREQ_JWS_STRING);
         decodeJwsString(jwsString, true);
 
-        String normalizedURI =
-                SHREQSupport.normalizeTargetURI(shreqData.getString(SHREQSupport.SHREQ_TARGET_URI));
-        String normalizedTargetUri = 
-                SHREQSupport.normalizeTargetURI(targetUri);
+        String normalizedURI = shreqData.getString(SHREQSupport.SHREQ_TARGET_URI);
         if (!normalizedURI.equals(normalizedTargetUri)) {
             error("Declared URI=" + normalizedURI + " Actual URI=" + normalizedTargetUri);
         }

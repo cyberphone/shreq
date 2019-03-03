@@ -48,18 +48,19 @@ public class SHREQSupport {
                                                               "HEAD",
                                                               "CONNECT"};
     
-    public static JSONObjectWriter createJSONRequestHeader(String uri,
-                                                           String method,
+    public static JSONObjectWriter createJSONRequestHeader(String targetUri,
+                                                           String targetMethod,
                                                            GregorianCalendar issuetAt) throws IOException {
         return new JSONObjectWriter()
-            .setString(SHREQ_TARGET_URI, uri)
+            .setString(SHREQ_TARGET_URI, normalizeTargetURI(targetUri))
 
             // If the method is "POST" this element MAY be skipped
-            .setDynamic((wr) -> method == null ? wr : wr.setString(SHREQ_HTTP_METHOD, method))
+            .setDynamic((wr) -> targetMethod == null ?
+                    wr : wr.setString(SHREQ_HTTP_METHOD, targetMethod))
 
             // If the "payload" already has a "DateTime" object this element MAY be skipped
-            .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, 
-                                                                    issuetAt.getTimeInMillis() / 1000));
+            .setDynamic((wr) -> issuetAt == null ?
+                    wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
     }
     
     static final char[] BIG_HEX = {'0', '1', '2', '3', '4', '5', '6', '7',
@@ -80,30 +81,31 @@ public class SHREQSupport {
         return escaped.toString();
     }
 
-    public static String normalizeTargetURI(String uri) throws IOException {
+    static String normalizeTargetURI(String uri) throws IOException {
         // To be fully defined and implemented
         return utf8EscapeUri(uri);
     }
 
-    static byte[] getDigestedAndNormalizedURI(String uri, 
-                                              SignatureAlgorithms signatureAlgorithm) throws IOException {
-        return signatureAlgorithm.getDigestAlgorithm().digest(normalizeTargetURI(uri).getBytes("utf-8"));
+    static byte[] getDigestedURI(String alreadyNormalizedUri,
+                                 SignatureAlgorithms signatureAlgorithm) throws IOException {
+        return signatureAlgorithm.getDigestAlgorithm().digest(alreadyNormalizedUri.getBytes("utf-8"));      
     }
 
     public static JSONObjectWriter createURIRequestPayload(String targetUri,
-                                                           String method,
+                                                           String targetMethod,
                                                            GregorianCalendar issuetAt,
                                                            SignatureAlgorithms signatureAlgorithm)
     throws IOException {
         return new JSONObjectWriter()
-            .setBinary(SHREQ_HASHED_NORMALIZED_URI, getDigestedAndNormalizedURI(targetUri,
-                                                                                signatureAlgorithm))
+            .setBinary(SHREQ_HASHED_NORMALIZED_URI,
+                       getDigestedURI(normalizeTargetURI(targetUri), signatureAlgorithm))
     
             // If the method is "GET" this element MAY be skipped
-            .setDynamic((wr) -> method == null ? wr : wr.setString(SHREQ_HTTP_METHOD, method))
+            .setDynamic((wr) -> targetMethod == null ? 
+                    wr : wr.setString(SHREQ_HTTP_METHOD, targetMethod))
     
             // This element MAY be skipped
-            .setDynamic((wr) -> issuetAt == null ? wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, 
-                                                                    issuetAt.getTimeInMillis() / 1000));
+            .setDynamic((wr) -> issuetAt == null ?
+                    wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
     }
 }
