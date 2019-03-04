@@ -41,10 +41,11 @@ public class JSONRequestValidation extends ValidationCore {
     @Override
     protected void validateImplementation() throws IOException, 
                                                    GeneralSecurityException {
-        shreqData = message.getObject(SHREQSupport.SHREQ_LABEL);
-
-        String jwsString = shreqData.getString(SHREQSupport.SHREQ_JWS_STRING);
+        JSONObjectReader temp = message.getObject(SHREQSupport.SHREQ_LABEL);
+        String jwsString = temp.getString(SHREQSupport.SHREQ_JWS_STRING);
         decodeJwsString(jwsString, true);
+
+        shreqData = commonDataFilter(temp);
 
         String normalizedURI = shreqData.getString(SHREQSupport.SHREQ_TARGET_URI);
         if (!normalizedURI.equals(normalizedTargetUri)) {

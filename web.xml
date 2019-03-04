@@ -11,6 +11,12 @@
     </context-param>
 
     <context-param>
+        <description>Hash algorithm override</description>
+        <param-name>hash_algorithm</param-name>
+        <param-value>@hash-algorithm@</param-value>
+    </context-param>
+
+    <context-param>
         <description>Logging flag</description>
         <param-name>logging</param-name>
         <param-value>@logging@</param-value>

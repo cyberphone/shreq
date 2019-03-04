@@ -76,12 +76,16 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             }
             logger.info("JSON Signature Verification Entered");
             // Get the two input data items
+            String targetUri = getParameter(request, TARGET_URI);
             String signedJsonObject = getParameter(request, JSON_PAYLOAD);
             boolean jsonRequest = new Boolean(getParameter(request, REQUEST_TYPE));
-            String targetUri = getParameter(request, TARGET_URI);
+            String headerData = getParameter(request, TXT_OPT_HEADERS);
             String validationKey = getParameter(request, JWS_VALIDATION_KEY);
             String targetMethod = getParameter(request, PRM_HTTP_METHOD);
             LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
+            if (headerData.length() >0) {
+                headerMap.put("a", headerData);
+            }
             ValidationCore validationCore = null;
 
             // Determining Request Type
@@ -224,28 +228,28 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
         String targetUri = getDefaultUri(request);
         if (sampleJsonRequest_JS == null) {
             synchronized(this) {
-                AsymSignatureAlgorithms signatureAlgorithm = AsymSignatureAlgorithms.ECDSA_SHA256;
-                JSONObjectWriter JWS_Protected_Header =
-                        JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
-                                                          signatureAlgorithm);
-                JSONObjectWriter writer = 
-                        new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
-                
-                JSONObjectWriter shreqObject = 
-                        SHREQSupport.createJSONRequestHeader(targetUri,
-                                                             SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
-                                                             new GregorianCalendar(),
-                                                             "",
-                                                             signatureAlgorithm);
-                writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
-                byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-
-                // Sign it using the provided algorithm and key
-                PrivateKey privateKey = 
-                        SHREQService.predefinedKeyPairs
-                            .get(signatureAlgorithm
-                                    .getAlgorithmId(AlgorithmPreferences.JOSE)).getPrivate();
                 try {
+                    AsymSignatureAlgorithms signatureAlgorithm = AsymSignatureAlgorithms.ECDSA_SHA256;
+                    JSONObjectWriter JWS_Protected_Header =
+                            JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
+                                                              signatureAlgorithm);
+                    JSONObjectWriter writer = 
+                            new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
+                    
+                    JSONObjectWriter shreqObject = 
+                            SHREQSupport.createJSONRequestHeader(targetUri,
+                                                                 SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
+                                                                 new GregorianCalendar(),
+                                                                 "",
+                                                                 signatureAlgorithm);
+                    writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
+                    byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+        
+                    // Sign it using the provided algorithm and key
+                    PrivateKey privateKey = 
+                            SHREQService.predefinedKeyPairs
+                                .get(signatureAlgorithm
+                                        .getAlgorithmId(AlgorithmPreferences.JOSE)).getPrivate();
                     String jwsString = 
                             JOSESupport.createJwsSignature(JWS_Protected_Header, 
                                                            JWS_Payload,

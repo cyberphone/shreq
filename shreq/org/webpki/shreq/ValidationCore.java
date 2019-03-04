@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 
 import java.util.logging.Logger;
 
+import org.webpki.crypto.HashAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.jose.JOSESupport;
@@ -63,6 +64,8 @@ public abstract class ValidationCore {
     
     protected SignatureAlgorithms signatureAlgorithm;
     
+    protected HashAlgorithms hashAlgorithm;  // For digests
+    
     protected String keyId;
     
     protected PublicKey publicKey;
@@ -72,10 +75,6 @@ public abstract class ValidationCore {
     JSONObjectReader shreqData;
     
     private Object cookie;
-
-    private byte[] headerDigest;
-
-    private String headerData;
 
     protected ValidationCore(String targetUri,
                              String targetMethod,
@@ -141,23 +140,6 @@ public abstract class ValidationCore {
                                                                            GeneralSecurityException {
         this.validationKeyService = validationKeyService;
         validateImplementation();
-        String method = 
-                shreqData.getStringConditional(SHREQSupport.SHREQ_HTTP_METHOD, defaultMethod());
-        if (!targetMethod.equals(method)){
-            error("Declared Method=" + method + " Actual Method=" + targetMethod);
-        }       
-        if (shreqData.hasProperty(SHREQSupport.SHREQ_ISSUED_AT_TIME)) {
-            issuedAt = new GregorianCalendar();
-            issuedAt.setTimeInMillis(shreqData.getInt53(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000);
-        }
-        if (shreqData.hasProperty(SHREQSupport.SHREQ_HEADER_RECORD)) {
-            JSONArrayReader array = shreqData.getArray(SHREQSupport.SHREQ_HEADER_RECORD);
-            headerDigest = array.getBinary();
-            headerData = array.getString();
-            if (array.hasMore()) {
-                error("Excess elements in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
-            }
-        }
         shreqData.checkForUnread();
         validateSignature();
     }
@@ -199,7 +181,48 @@ public abstract class ValidationCore {
     protected void error(String what) throws IOException {
         throw new IOException(what);
     }
+
+    protected JSONObjectReader commonDataFilter(JSONObjectReader shreqRecord)
+    throws IOException, GeneralSecurityException {
+        if (shreqRecord.hasProperty(SHREQSupport.SHREQ_HASH_ALG_OVERRIDE)) {
+            hashAlgorithm = SHREQSupport.getHashAlgorithm(
+                    shreqRecord.getString(SHREQSupport.SHREQ_HASH_ALG_OVERRIDE));
+        } else {
+            hashAlgorithm = signatureAlgorithm.getDigestAlgorithm();
+        }
+        String method = 
+                shreqRecord.getStringConditional(SHREQSupport.SHREQ_HTTP_METHOD, defaultMethod());
+        if (!targetMethod.equals(method)){
+            error("Declared Method=" + method + " Actual Method=" + targetMethod);
+        }       
+        if (shreqRecord.hasProperty(SHREQSupport.SHREQ_ISSUED_AT_TIME)) {
+            issuedAt = new GregorianCalendar();
+            issuedAt.setTimeInMillis(shreqRecord.getInt53(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000);
+        }
+        if (shreqRecord.hasProperty(SHREQSupport.SHREQ_HEADER_RECORD)) {
+            JSONArrayReader array = shreqRecord.getArray(SHREQSupport.SHREQ_HEADER_RECORD);
+            byte[] headerDigest = array.getBinary();
+            String headerData = array.getString();
+            if (array.hasMore()) {
+                error("Excess elements in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
+            }
+            if (headerDigest != null) {
+                if (!ArrayUtil.compare(headerDigest, 
+                                       getDigest(headerData))) {
+                    error("\"" + SHREQSupport.SHREQ_HEADER_RECORD + "\" digest error");
+                }
+                if (!headerData.equals(headerMap.get("a"))) {
+                    error("Header '" + headerData + "' is missing");
+                }
+            }
+        }
+        return shreqRecord;
+    }
     
+    protected byte[] getDigest(String data) throws IOException {
+        return hashAlgorithm.digest(data.getBytes("utf-8"));
+    }
+
     // 6.6
     protected void decodeJwsString(String jwsString, boolean detached) throws IOException,
                                                                                GeneralSecurityException {
@@ -257,14 +280,6 @@ public abstract class ValidationCore {
         // 4.2:10 or 5.2:5
         
         validationMode = true;
-        
-        if (headerDigest != null) {
-            if (!ArrayUtil.compare(headerDigest, 
-                                   SHREQSupport.getDigestedURI(headerData,
-                                                               signatureAlgorithm))) {
-                error("\"" + SHREQSupport.SHREQ_HEADER_RECORD + "\" digest error");
-            }
-        }
         
         // 6.9:1
         // Unused JWS header elements indicate problems...

@@ -56,11 +56,10 @@ public class URIRequestValidation extends ValidationCore {
         }
 
         decodeJwsString(jwsString, false);
-        shreqData = JSONParser.parse(JWS_Payload);
+        shreqData = commonDataFilter(JSONParser.parse(JWS_Payload));
 
         if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.SHREQ_HASHED_NORMALIZED_URI),
-                               SHREQSupport.getDigestedURI(normalizedTargetUri,
-                                                           signatureAlgorithm))) {
+                               getDigest(normalizedTargetUri))) {
             error("URI mismatch. Normalized URI: " + normalizedTargetUri);
         }
     }

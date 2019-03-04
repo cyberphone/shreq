@@ -20,14 +20,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.security.GeneralSecurityException;
-
 import java.security.KeyPair;
 import java.security.KeyStore;
 
 import java.util.LinkedHashMap;
 
 import java.util.logging.Level;
-
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContextEvent;
@@ -39,6 +37,8 @@ import org.webpki.crypto.CustomCryptoProvider;
 import org.webpki.crypto.KeyStoreVerifier;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
+
+import org.webpki.shreq.SHREQSupport;
 
 import org.webpki.util.ArrayUtil;
 import org.webpki.util.DebugFormatter;
@@ -66,7 +66,7 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
         
         static final String PRIVATE_KEYS = "privateKeys";
         static final String SECRET_KEYS  = "secretKeys";
-        static final String CERTIFICATES = "certifictes";
+        static final String CERTIFICATES = "certificates";
         
         StringBuilder decl = new StringBuilder("var ");
         StringBuilder after = new StringBuilder();
@@ -186,6 +186,16 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
                           PEMDecoder.getRootCertificate(getEmbeddedResourceBinary("rootca.pem")));
             certificateVerifier = new KeyStoreVerifier(keyStore);
 
+            /////////////////////////////////////////////////////////////////////////////////////////////
+            // Hash algorithm override?
+            /////////////////////////////////////////////////////////////////////////////////////////////
+            String algorithmId = getPropertyString("hash_algorithm");
+            if (algorithmId.length() > 0) {
+                SHREQSupport.getHashAlgorithm(algorithmId);
+                SHREQSupport.overridedHashAlgorithm = algorithmId;
+                logger.info("Hash OVERRIDE MODE");
+            }
+            
             /////////////////////////////////////////////////////////////////////////////////////////////
             // Logging?
             /////////////////////////////////////////////////////////////////////////////////////////////

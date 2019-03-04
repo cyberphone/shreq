@@ -415,6 +415,10 @@ public class CreateServlet extends BaseGuiServlet {
                 "=" +
                 URLEncoder.encode(signedJSONRequest, "utf-8") +
                 "&" +
+                TXT_OPT_HEADERS + 
+                "=" +
+                URLEncoder.encode(headerData, "utf-8") +
+                "&" +
                 JWS_VALIDATION_KEY + 
                 "=" +
                 URLEncoder.encode(validationKey, "utf-8") +
