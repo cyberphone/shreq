@@ -18,7 +18,11 @@ package org.webpki.webapps.shreq;
 
 import java.io.IOException;
 
+import java.util.LinkedHashMap;
+
 import java.util.logging.Logger;
+
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -228,5 +232,29 @@ public class BaseGuiServlet extends HttpServlet {
             }
         }
         return s.toString();
+    }
+    private static final String HEADER_SYNTAX = "[ \t]*[a-z0-9A-Z\\$\\._\\-]+[ \t]*:.*";
+    
+    static final Pattern HEADER_STRING_ARRAY_SYNTAX = 
+            Pattern.compile(HEADER_SYNTAX + "+(\n" + HEADER_SYNTAX + "+)*");
+    
+    LinkedHashMap<String,String> createHeaderData(String rawText) throws IOException {
+        LinkedHashMap<String,String> headerData = new LinkedHashMap<String,String>();
+        if (!rawText.isEmpty()) {
+            rawText = rawText.trim().replace("\r", "");
+            if (!HEADER_STRING_ARRAY_SYNTAX.matcher(rawText).matches()) {
+                throw new IOException("HTTP Header syntax");
+            }
+            for (String headerLine : rawText.split("\n")) {
+                int colon = headerLine.indexOf(':');
+                String headerName = headerLine.substring(0, colon).trim().toLowerCase();
+                if (headerData.put(
+                        headerName,
+                        SHREQSupport.normalizeHeaderArgument(headerLine.substring(colon + 1))) != null) {
+                    throw new IOException("Duplicate header: " + headerName);
+                }
+            }
+        }
+        return headerData;
     }
 }

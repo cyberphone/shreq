@@ -23,6 +23,8 @@ import java.security.GeneralSecurityException;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 
+import java.util.regex.Pattern;
+
 import org.webpki.crypto.HashAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
@@ -32,7 +34,7 @@ public class SHREQSupport {
     
     private SHREQSupport() {}
     
-    public static final String SHREQ_LABEL                 = "$secinf$";
+    public static final String SHREQ_LABEL                 = ".secinfo";
     
     public static final String SHREQ_TARGET_URI            = "uri";  // For JSON requests only
     public static final String SHREQ_HASHED_NORMALIZED_URI = "hnu";  // For URI based requests only
@@ -61,6 +63,11 @@ public class SHREQSupport {
         hashAlgorithms.put("S512", HashAlgorithms.SHA512);
     }
     
+    private static final String HEADER_SYNTAX = "[a-z0-9\\-\\$_\\.]";
+    
+    static final Pattern HEADER_STRING_ARRAY_SYNTAX = 
+            Pattern.compile(HEADER_SYNTAX + "+(," + HEADER_SYNTAX + "+)*");
+    
     public static HashAlgorithms getHashAlgorithm(String algorithmId) throws GeneralSecurityException {
         HashAlgorithms algorithm = hashAlgorithms.get(algorithmId);
         if (algorithm == null) {
@@ -81,18 +88,32 @@ public class SHREQSupport {
     }
     
     private static JSONObjectWriter setHeader(JSONObjectWriter wr,
-                                              String headerData,
+                                              LinkedHashMap<String, String> httpHeaderData,
                                               SignatureAlgorithms signatureAlgorithm,
                                               boolean required)
     throws IOException, GeneralSecurityException {
-        boolean headerFlag = headerData != null && headerData.length() > 0;
+        boolean headerFlag = httpHeaderData != null && !httpHeaderData.isEmpty();
         if ((headerFlag || required)&& overridedHashAlgorithm != null) {
             wr.setString(SHREQ_HASH_ALG_OVERRIDE, overridedHashAlgorithm);
         }
         if (headerFlag) {
+            StringBuilder headers = new StringBuilder();
+            StringBuilder headerString = new StringBuilder();
+            boolean next = false;
+            for (String header : httpHeaderData.keySet()) {
+                headers.append(header)
+                       .append(':')
+                       .append(httpHeaderData.get(header))
+                       .append('\n');
+                if (next) {
+                    headerString.append(',');
+                }
+                next = true;
+                headerString.append(header);
+            }
             wr.setArray(SHREQ_HEADER_RECORD)
-                .setBinary(digest(signatureAlgorithm, headerData))
-                .setString(headerData);
+                .setBinary(digest(signatureAlgorithm, headers.toString()))
+                .setString(headerString.toString());
         }
         return wr;
     }
@@ -100,7 +121,7 @@ public class SHREQSupport {
     public static JSONObjectWriter createJSONRequestHeader(String targetUri,
                                                            String targetMethod,
                                                            GregorianCalendar issuetAt,
-                                                           String headerData, 
+                                                           LinkedHashMap<String, String> httpHeaderData, 
                                                            SignatureAlgorithms signatureAlgorithm)
     throws IOException, GeneralSecurityException {
         JSONObjectWriter header = new JSONObjectWriter()
@@ -115,13 +136,13 @@ public class SHREQSupport {
                     wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
 
         // Optional headers
-        return setHeader(header, headerData, signatureAlgorithm, false);
+        return setHeader(header, httpHeaderData, signatureAlgorithm, false);
     }
     
     public static JSONObjectWriter createURIRequestPayload(String targetUri,
                                                            String targetMethod,
                                                            GregorianCalendar issuetAt,
-                                                           String headerData, 
+                                                           LinkedHashMap<String, String> httpHeaderData, 
                                                            SignatureAlgorithms signatureAlgorithm)
     throws IOException, GeneralSecurityException {
         JSONObjectWriter header = new JSONObjectWriter()
@@ -137,7 +158,7 @@ public class SHREQSupport {
             wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
     
         // Optional headers
-        return setHeader(header, headerData, signatureAlgorithm, true);
+        return setHeader(header, httpHeaderData, signatureAlgorithm, true);
     }
     
     static final char[] BIG_HEX = {'0', '1', '2', '3', '4', '5', '6', '7',
@@ -172,6 +193,10 @@ public class SHREQSupport {
                                  SignatureAlgorithms signatureAlgorithm)
     throws IOException, GeneralSecurityException {
         return digest(signatureAlgorithm, alreadyNormalizedUri);      
+    }
+
+    public static String normalizeHeaderArgument(String argument) {
+        return argument.trim();
     }
 
 }

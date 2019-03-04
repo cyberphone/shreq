@@ -23,6 +23,7 @@ import java.net.URLEncoder;
 import java.security.KeyPair;
 
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 
 import javax.servlet.ServletException;
 
@@ -286,7 +287,8 @@ public class CreateServlet extends BaseGuiServlet {
             request.setCharacterEncoding("utf-8");
             String targetUri = SHREQSupport.utf8EscapeUri(getTextArea(request, TARGET_URI));
             String jsonData = getTextArea(request, JSON_PAYLOAD);
-            String headerData = getTextArea(request, TXT_OPT_HEADERS);
+            String rawHttpHeaderData = getTextArea(request, TXT_OPT_HEADERS);
+            LinkedHashMap<String, String> httpHeaderData = createHeaderData(rawHttpHeaderData);
             String method = getParameter(request, PRM_HTTP_METHOD);
             boolean jsonRequest = new Boolean(getParameter(request, REQUEST_TYPE));
             JSONObjectReader additionalHeaderData = JSONParser.parse(getParameter(request, TXT_JWS_EXTRA));
@@ -354,7 +356,7 @@ public class CreateServlet extends BaseGuiServlet {
                                 !method.equals(SHREQSupport.SHREQ_DEFAULT_JSON_METHOD) ?
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null,
-                                headerData,
+                                httpHeaderData,
                                 algorithm);
                 writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
                 byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
@@ -390,7 +392,7 @@ public class CreateServlet extends BaseGuiServlet {
                                 !method.equals(SHREQSupport.SHREQ_DEFAULT_URI_METHOD) ?
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null,
-                                headerData,
+                                httpHeaderData,
                                 algorithm);
                 targetUri = SHREQSupport.addJwsToTargetUri(
                         targetUri,
@@ -417,7 +419,7 @@ public class CreateServlet extends BaseGuiServlet {
                 "&" +
                 TXT_OPT_HEADERS + 
                 "=" +
-                URLEncoder.encode(headerData, "utf-8") +
+                URLEncoder.encode(rawHttpHeaderData, "utf-8") +
                 "&" +
                 JWS_VALIDATION_KEY + 
                 "=" +

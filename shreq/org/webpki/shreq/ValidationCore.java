@@ -24,6 +24,7 @@ import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 
 import java.util.logging.Logger;
@@ -202,18 +203,30 @@ public abstract class ValidationCore {
         if (shreqRecord.hasProperty(SHREQSupport.SHREQ_HEADER_RECORD)) {
             JSONArrayReader array = shreqRecord.getArray(SHREQSupport.SHREQ_HEADER_RECORD);
             byte[] headerDigest = array.getBinary();
-            String headerData = array.getString();
+            String concatenatedHeaders = array.getString();
             if (array.hasMore()) {
                 error("Excess elements in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
             }
-            if (headerDigest != null) {
-                if (!ArrayUtil.compare(headerDigest, 
-                                       getDigest(headerData))) {
-                    error("\"" + SHREQSupport.SHREQ_HEADER_RECORD + "\" digest error");
+            if (!SHREQSupport.HEADER_STRING_ARRAY_SYNTAX.matcher(concatenatedHeaders).matches()) {
+                error("Syntax error in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
+            }
+            StringBuilder total = new StringBuilder();
+            HashSet<String> checker = new HashSet<String>();
+            for (String header : concatenatedHeaders.split(",")) {
+                String argument = headerMap.get(header);
+                if (argument == null) {
+                    error("Missing header in request: " + header);
                 }
-                if (!headerData.equals(headerMap.get("a"))) {
-                    error("Header '" + headerData + "' is missing");
+                total.append(header)
+                     .append(':')
+                     .append(SHREQSupport.normalizeHeaderArgument(argument))
+                     .append('\n');
+                if (!checker.add(header)) {
+                    error("Duplicate header in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
                 }
+            }
+            if (!ArrayUtil.compare(headerDigest, getDigest(total.toString()))) {
+                error("\"" + SHREQSupport.SHREQ_HEADER_RECORD + "\" digest error");
             }
         }
         return shreqRecord;

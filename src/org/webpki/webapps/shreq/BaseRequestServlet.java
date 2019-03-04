@@ -119,16 +119,18 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         // Recreate the Target URI (4.2:2 , 5.2:2)
         String targetUri = getUrlFromRequest(request);
 
-        // Collect HTTP Headers in a Lowercase Format
-        LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
+        // Collect HTTP Headers
         @SuppressWarnings("unchecked")
         Enumeration<String> headers = request.getHeaderNames();
-        while (headers.hasMoreElements()) {
-            String header = headers.nextElement();
-            headerMap.put(header.toLowerCase(), request.getHeader(header));
-        }
         
         try {
+            LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
+            while (headers.hasMoreElements()) {
+                String header = headers.nextElement();
+                if (headerMap.put(header.toLowerCase(), request.getHeader(header)) != null) {
+                    throw new IOException("Duplicate header: " + header);
+                }
+            }
 
             // 3. Determining Request Type
             if (request.getHeader(CONTENT_LENGTH) == null) {

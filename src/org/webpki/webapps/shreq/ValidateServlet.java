@@ -79,13 +79,9 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             String targetUri = getParameter(request, TARGET_URI);
             String signedJsonObject = getParameter(request, JSON_PAYLOAD);
             boolean jsonRequest = new Boolean(getParameter(request, REQUEST_TYPE));
-            String headerData = getParameter(request, TXT_OPT_HEADERS);
+            LinkedHashMap<String,String> httpHeaderData = createHeaderData(getParameter(request, TXT_OPT_HEADERS));
             String validationKey = getParameter(request, JWS_VALIDATION_KEY);
             String targetMethod = getParameter(request, PRM_HTTP_METHOD);
-            LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
-            if (headerData.length() >0) {
-                headerMap.put("a", headerData);
-            }
             ValidationCore validationCore = null;
 
             // Determining Request Type
@@ -111,12 +107,12 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                 signedJsonObject = prettySignature;
                 validationCore = new JSONRequestValidation(targetUri,
                                                            targetMethod,
-                                                           headerMap,
+                                                           httpHeaderData,
                                                            parsedObject);
             } else {
                 validationCore = new URIRequestValidation(targetUri,
                                                           targetMethod, 
-                                                          headerMap);
+                                                          httpHeaderData);
             }
 
             // Now assign the key
@@ -229,6 +225,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
         if (sampleJsonRequest_JS == null) {
             synchronized(this) {
                 try {
+                    LinkedHashMap<String,String> noHeaders = new LinkedHashMap<String,String>();
                     AsymSignatureAlgorithms signatureAlgorithm = AsymSignatureAlgorithms.ECDSA_SHA256;
                     JSONObjectWriter JWS_Protected_Header =
                             JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
@@ -240,7 +237,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                             SHREQSupport.createJSONRequestHeader(targetUri,
                                                                  SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
                                                                  new GregorianCalendar(),
-                                                                 "",
+                                                                 noHeaders,
                                                                  signatureAlgorithm);
                     writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
                     byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
@@ -265,7 +262,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                             SHREQSupport.createURIRequestPayload(targetUri,
                                                                  SHREQSupport.SHREQ_DEFAULT_URI_METHOD,
                                                                  new GregorianCalendar(),
-                                                                 "",
+                                                                 noHeaders,
                                                                  signatureAlgorithm);
                     sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
                             targetUri,
