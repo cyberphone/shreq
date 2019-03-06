@@ -182,8 +182,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         } catch (Exception e) {
 
             // Houston, we got a problem...
-            returnResponse(response, validationCore == null || !validationCore.isValidating() ?
-                           HttpServletResponse.SC_BAD_REQUEST : HttpServletResponse.SC_UNAUTHORIZED,
+            returnResponse(response, HttpServletResponse.SC_BAD_REQUEST,
                     "                       *************\n" +
                     "                       * E R R O R *\n" +
                     "                       *************\n" +
