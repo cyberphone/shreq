@@ -74,7 +74,6 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             if (!request.getContentType().startsWith("application/x-www-form-urlencoded")) {
                 throw new IOException("Unexpected MIME type:" + request.getContentType());
             }
-            logger.info("JSON Signature Verification Entered");
             // Get the two input data items
             String targetUri = getParameter(request, TARGET_URI);
             String signedJsonObject = getParameter(request, JSON_PAYLOAD);
