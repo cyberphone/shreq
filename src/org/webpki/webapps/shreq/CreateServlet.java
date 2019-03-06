@@ -288,7 +288,6 @@ public class CreateServlet extends BaseGuiServlet {
             String targetUri = SHREQSupport.utf8EscapeUri(getTextArea(request, TARGET_URI));
             String jsonData = getTextArea(request, JSON_PAYLOAD);
             String rawHttpHeaderData = getTextArea(request, TXT_OPT_HEADERS);
-            LinkedHashMap<String, String> httpHeaderData = createHeaderData(rawHttpHeaderData);
             String method = getParameter(request, PRM_HTTP_METHOD);
             boolean jsonRequest = new Boolean(getParameter(request, REQUEST_TYPE));
             JSONObjectReader additionalHeaderData = JSONParser.parse(getParameter(request, TXT_JWS_EXTRA));
@@ -296,6 +295,9 @@ public class CreateServlet extends BaseGuiServlet {
             boolean certOption = request.getParameter(FLG_CERT_PATH) != null;
             boolean iatOption = request.getParameter(FLG_IAT_PRESENT) != null;
             boolean forceMethod = request.getParameter(FLG_DEF_METHOD) != null;
+            boolean httpHeaders = request.getParameter(FLG_HEADERS) != null;
+            LinkedHashMap<String, String> httpHeaderData = 
+                    createHeaderData(httpHeaders ? rawHttpHeaderData : "");
             SignatureAlgorithms algorithm = 
                     JOSESupport.getSignatureAlgorithm(getParameter(request, PRM_JWS_ALGORITHM));
 

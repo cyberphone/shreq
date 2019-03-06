@@ -34,7 +34,7 @@ public class SHREQSupport {
     
     private SHREQSupport() {}
     
-    public static final String SHREQ_LABEL                 = ".secinfo";
+    public static final String SHREQ_LABEL                 = ".secinf";
     
     public static final String SHREQ_TARGET_URI            = "uri";  // For JSON requests only
     public static final String SHREQ_HASHED_NORMALIZED_URI = "hnu";  // For URI based requests only

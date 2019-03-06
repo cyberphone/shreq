@@ -61,6 +61,8 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
     static final String EXTCONFREQ             = "/extconfreq";
     static final String PRECONFREQ             = "/preconfreq";
+    static final String EXTCONFREQ2            = "/extconfreq2";
+    static final String PRECONFREQ2            = "/preconfreq2";
   
     static Logger logger = Logger.getLogger(BaseRequestServlet.class.getName());
 
