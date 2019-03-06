@@ -285,7 +285,7 @@ public class CreateServlet extends BaseGuiServlet {
             throws IOException, ServletException {
          try {
             request.setCharacterEncoding("utf-8");
-            String targetUri = SHREQSupport.utf8EscapeUri(getTextArea(request, TARGET_URI));
+            String targetUri = SHREQSupport.normalizeTargetURI(getTextArea(request, TARGET_URI));
             String jsonData = getTextArea(request, JSON_PAYLOAD);
             String rawHttpHeaderData = getTextArea(request, TXT_OPT_HEADERS);
             String method = getParameter(request, PRM_HTTP_METHOD);

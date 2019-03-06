@@ -184,8 +184,13 @@ public class SHREQSupport {
                 '&' : '?') + SHREQSupport.SHREQ_LABEL + "=" + jwsString;
     }
 
-    static String normalizeTargetURI(String uri) throws IOException {
-        // To be fully defined and implemented
+    public static String normalizeTargetURI(String uri) throws IOException {
+        // Incomplete...
+        if (uri.startsWith("https:")) {
+            uri = uri.replace(":443/", "/");
+        } else {
+            uri = uri.replace(":80/", "/");
+        }
         return utf8EscapeUri(uri);
     }
 

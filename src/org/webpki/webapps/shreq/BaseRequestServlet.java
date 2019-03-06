@@ -89,13 +89,14 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
     }
     
     static String getUrlFromRequest(HttpServletRequest request) {
-        return request.getScheme() + "://" +
-                request.getServerName() + 
-                ("http".equals(request.getScheme()) && request.getServerPort() == 80 ||
-                 "https".equals(request.getScheme()) && request.getServerPort() == 443 ? 
-                 "" : ":" + request.getServerPort()) +
+        return request.getScheme() +
+                "://" +
+                request.getServerName() +
+                ":" +
+                request.getServerPort() +
                 request.getRequestURI() +
-               (request.getQueryString() == null ? "" : "?" + request.getQueryString());
+               (request.getQueryString() == null ? 
+                                              "" : "?" + request.getQueryString());
     }
     
     protected boolean enforceTimeStamp() {
