@@ -233,12 +233,12 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                             new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
                     
                     JSONObjectWriter shreqObject = 
-                            SHREQSupport.createJSONRequestHeader(targetUri,
+                            SHREQSupport.createJSONRequestSecInf(targetUri,
                                                                  SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
                                                                  new GregorianCalendar(),
                                                                  noHeaders,
                                                                  signatureAlgorithm);
-                    writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
+                    writer.setObject(SHREQSupport.SHREQ_SECINF_LABEL, shreqObject);
                     byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
                     // Sign it using the provided algorithm and key
@@ -258,7 +258,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                             HTML.javaScript(writer.serializeToString(JSONOutputFormats.PRETTY_PRINT));
 
                     shreqObject = 
-                            SHREQSupport.createURIRequestPayload(targetUri,
+                            SHREQSupport.createURIRequestSecInf(targetUri,
                                                                  SHREQSupport.SHREQ_DEFAULT_URI_METHOD,
                                                                  new GregorianCalendar(),
                                                                  noHeaders,

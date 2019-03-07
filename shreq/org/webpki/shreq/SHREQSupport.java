@@ -34,26 +34,26 @@ public class SHREQSupport {
     
     private SHREQSupport() {}
     
-    public static final String SHREQ_LABEL                 = ".secinf";
+    public static final String SHREQ_SECINF_LABEL        = ".secinf"; // For JSON based requests only
     
-    public static final String SHREQ_TARGET_URI            = "uri";  // For JSON requests only
-    public static final String SHREQ_HASHED_NORMALIZED_URI = "hnu";  // For URI based requests only
-    public static final String SHREQ_HTTP_METHOD           = "mtd";
-    public static final String SHREQ_ISSUED_AT_TIME        = "iat";
-    public static final String SHREQ_JWS_STRING            = "jws";
-    public static final String SHREQ_HEADER_RECORD         = "hdr";
-    public static final String SHREQ_HASH_ALG_OVERRIDE     = "hao";
+    public static final String SHREQ_TARGET_URI          = "uri";     // For JSON based requests only
+    public static final String SHREQ_HASHED_TARGET_URI   = "htu";     // For URI based requests only
+    public static final String SHREQ_HTTP_METHOD         = "mtd";
+    public static final String SHREQ_ISSUED_AT_TIME      = "iat";
+    public static final String SHREQ_HEADER_RECORD       = "hdr";
+    public static final String SHREQ_HASH_ALG_OVERRIDE   = "hao";
+    public static final String SHREQ_JWS_STRING          = "jws";     // For JSON based requests only
     
-    public static final String SHREQ_DEFAULT_JSON_METHOD   = "POST";
-    public static final String SHREQ_DEFAULT_URI_METHOD    = "GET";
+    public static final String SHREQ_DEFAULT_JSON_METHOD = "POST";
+    public static final String SHREQ_DEFAULT_URI_METHOD  = "GET";
     
-    public static final String[] HTTP_METHODS              = {"GET", 
-                                                              "POST",
-                                                              "PUT", 
-                                                              "DELETE",
-                                                              "PATCH",
-                                                              "HEAD",
-                                                              "CONNECT"};
+    public static final String[] HTTP_METHODS            = {"GET", 
+                                                            "POST",
+                                                            "PUT", 
+                                                            "DELETE",
+                                                            "PATCH",
+                                                            "HEAD",
+                                                            "CONNECT"};
     
     static final LinkedHashMap<String,HashAlgorithms> hashAlgorithms = 
                     new LinkedHashMap<String,HashAlgorithms>();
@@ -93,60 +93,60 @@ public class SHREQSupport {
                                               boolean required)
     throws IOException, GeneralSecurityException {
         boolean headerFlag = httpHeaderData != null && !httpHeaderData.isEmpty();
-        if ((headerFlag || required)&& overridedHashAlgorithm != null) {
+        if ((headerFlag || required) && overridedHashAlgorithm != null) {
             wr.setString(SHREQ_HASH_ALG_OVERRIDE, overridedHashAlgorithm);
         }
         if (headerFlag) {
-            StringBuilder headers = new StringBuilder();
-            StringBuilder headerString = new StringBuilder();
+            StringBuilder headerBlob = new StringBuilder();
+            StringBuilder headerList = new StringBuilder();
             boolean next = false;
             for (String header : httpHeaderData.keySet()) {
-                headers.append(header)
-                       .append(':')
-                       .append(httpHeaderData.get(header))
-                       .append('\n');
+                headerBlob.append(header)
+                          .append(':')
+                          .append(httpHeaderData.get(header));
                 if (next) {
-                    headerString.append(',');
+                	headerBlob.append('\n');
+                    headerList.append(',');
                 }
                 next = true;
-                headerString.append(header);
+                headerList.append(header);
             }
             wr.setArray(SHREQ_HEADER_RECORD)
-                .setBinary(digest(signatureAlgorithm, headers.toString()))
-                .setString(headerString.toString());
+                .setBinary(digest(signatureAlgorithm, headerBlob.toString()))
+                .setString(headerList.toString());
         }
         return wr;
     }
     
-    public static JSONObjectWriter createJSONRequestHeader(String targetUri,
+    public static JSONObjectWriter createJSONRequestSecInf(String targetUri,
                                                            String targetMethod,
                                                            GregorianCalendar issuetAt,
                                                            LinkedHashMap<String, String> httpHeaderData, 
                                                            SignatureAlgorithms signatureAlgorithm)
     throws IOException, GeneralSecurityException {
-        JSONObjectWriter header = new JSONObjectWriter()
+        JSONObjectWriter secinf = new JSONObjectWriter()
             .setString(SHREQ_TARGET_URI, normalizeTargetURI(targetUri))
 
             // If the method is "POST" this element MAY be skipped
             .setDynamic((wr) -> targetMethod == null ?
                     wr : wr.setString(SHREQ_HTTP_METHOD, targetMethod))
 
-            // If the "payload" already has a "DateTime" object this element MAY be skipped
+            // If "message" already has a "DateTime" object this element MAY be skipped
             .setDynamic((wr) -> issuetAt == null ?
                     wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
 
-        // Optional headers
-        return setHeader(header, httpHeaderData, signatureAlgorithm, false);
+        // Optional HTTP headers
+        return setHeader(secinf, httpHeaderData, signatureAlgorithm, false);
     }
     
-    public static JSONObjectWriter createURIRequestPayload(String targetUri,
-                                                           String targetMethod,
-                                                           GregorianCalendar issuetAt,
-                                                           LinkedHashMap<String, String> httpHeaderData, 
-                                                           SignatureAlgorithms signatureAlgorithm)
+    public static JSONObjectWriter createURIRequestSecInf(String targetUri,
+                                                          String targetMethod,
+                                                          GregorianCalendar issuetAt,
+                                                          LinkedHashMap<String, String> httpHeaderData, 
+                                                          SignatureAlgorithms signatureAlgorithm)
     throws IOException, GeneralSecurityException {
-        JSONObjectWriter header = new JSONObjectWriter()
-            .setBinary(SHREQ_HASHED_NORMALIZED_URI, 
+        JSONObjectWriter secinf = new JSONObjectWriter()
+            .setBinary(SHREQ_HASHED_TARGET_URI, 
                        getDigestedURI(normalizeTargetURI(targetUri), signatureAlgorithm))
     
             // If the method is "GET" this element MAY be skipped
@@ -158,7 +158,7 @@ public class SHREQSupport {
             wr : wr.setInt53(SHREQ_ISSUED_AT_TIME, issuetAt.getTimeInMillis() / 1000));
     
         // Optional headers
-        return setHeader(header, httpHeaderData, signatureAlgorithm, true);
+        return setHeader(secinf, httpHeaderData, signatureAlgorithm, true);
     }
     
     static final char[] BIG_HEX = {'0', '1', '2', '3', '4', '5', '6', '7',
@@ -181,7 +181,7 @@ public class SHREQSupport {
 
     public static String addJwsToTargetUri(String targetUri, String jwsString) {
         return targetUri + (targetUri.contains("?") ?
-                '&' : '?') + SHREQSupport.SHREQ_LABEL + "=" + jwsString;
+                '&' : '?') + SHREQSupport.SHREQ_SECINF_LABEL + "=" + jwsString;
     }
 
     public static String normalizeTargetURI(String uri) throws IOException {

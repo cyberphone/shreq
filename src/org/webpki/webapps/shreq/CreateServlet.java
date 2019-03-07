@@ -345,14 +345,14 @@ public class CreateServlet extends BaseGuiServlet {
             }
             String signedJSONRequest;
             if (jsonRequest) {
-                // Creating JWS data to be signed
+                // Creating JSON data to be signed
                 JSONObjectReader reader = JSONParser.parse(jsonData);
                 if (reader.getJSONArrayReader() != null) {
                     throw new IOException("The demo does not support signed arrays");
                 }
-                JSONObjectWriter writer = new JSONObjectWriter(reader);
-                JSONObjectWriter shreqObject = 
-                        SHREQSupport.createJSONRequestHeader(
+                JSONObjectWriter message = new JSONObjectWriter(reader);
+                JSONObjectWriter secinf = 
+                        SHREQSupport.createJSONRequestSecInf(
                                 targetUri,
                                 forceMethod ||
                                 !method.equals(SHREQSupport.SHREQ_DEFAULT_JSON_METHOD) ?
@@ -360,8 +360,8 @@ public class CreateServlet extends BaseGuiServlet {
                                 iatOption ? new GregorianCalendar() : null,
                                 httpHeaderData,
                                 algorithm);
-                writer.setObject(SHREQSupport.SHREQ_LABEL, shreqObject);
-                byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+                message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
+                byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
                 // Sign it using the provided algorithm and key
                 String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
@@ -371,13 +371,13 @@ public class CreateServlet extends BaseGuiServlet {
                 keyHolder = null;  // Nullify it after use
         
                 // Create the completed object which now is in "writer"
-                shreqObject.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
+                secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
                 
-                signedJSONRequest = writer.serializeToString(JSONOutputFormats.NORMALIZED);
+                signedJSONRequest = message.serializeToString(JSONOutputFormats.NORMALIZED);
                 
                 // The following is just for the demo.  That is, we want to preserve
                 // the original ("untouched") JSON data for educational purposes.
-                int i = signedJSONRequest.lastIndexOf("\"" + SHREQSupport.SHREQ_LABEL);
+                int i = signedJSONRequest.lastIndexOf("\"" + SHREQSupport.SHREQ_SECINF_LABEL);
                 if (signedJSONRequest.charAt(i - 1) == ',') {
                     i--;
                 }
@@ -388,7 +388,7 @@ public class CreateServlet extends BaseGuiServlet {
             } else {
                 signedJSONRequest="";
                 JSONObjectWriter writer = 
-                        SHREQSupport.createURIRequestPayload(
+                        SHREQSupport.createURIRequestSecInf(
                                 targetUri,
                                 forceMethod ||
                                 !method.equals(SHREQSupport.SHREQ_DEFAULT_URI_METHOD) ?

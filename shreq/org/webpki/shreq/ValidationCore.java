@@ -73,7 +73,7 @@ public abstract class ValidationCore {
     
     protected X509Certificate[] certificatePath;
     
-    JSONObjectReader shreqData;
+    JSONObjectReader secinf;
     
     private Object cookie;
 
@@ -114,7 +114,7 @@ public abstract class ValidationCore {
     }
 
     public JSONObjectReader getSHREQRecord() {
-        return shreqData;
+        return secinf;
     }
 
     public X509Certificate[] getCertificatePath() {
@@ -141,7 +141,7 @@ public abstract class ValidationCore {
                                                                            GeneralSecurityException {
         this.validationKeyService = validationKeyService;
         validateImplementation();
-        shreqData.checkForUnread();
+        secinf.checkForUnread();
         validateSignature();
     }
 
@@ -149,14 +149,13 @@ public abstract class ValidationCore {
         return validationMode;
     }
     
-    public void enforceTimeStamp(int marginInMinutes) throws IOException {
+    public void enforceTimeStamp(int after, int before) throws IOException {
         if (issuedAt == null) {
             error("Missing time stamp");
         }
-        long limit = marginInMinutes * 60000;
         long diff = new GregorianCalendar().getTimeInMillis() - issuedAt.getTimeInMillis();
-        if (diff > limit || -diff > limit) {
-            error("Time stamp outside of " + marginInMinutes + " minute limit");
+        if (diff > after || -diff > before) {
+            error("Time stamp diff (" + diff + " ms) outside of limits");
         }
     }
 
@@ -175,7 +174,7 @@ public abstract class ValidationCore {
         coreData.append("\nJWS Header:\n")
                 .append(JWS_Protected_Header == null ? "Not available\n" : JWS_Protected_Header.toString())
                 .append("\nSHREQ Record:\n")
-                .append(shreqData == null ? "Not available" : shreqData.toString());
+                .append(secinf == null ? "Not available" : secinf.toString());
         return coreData.toString();
     }
 
@@ -203,29 +202,33 @@ public abstract class ValidationCore {
         if (shreqRecord.hasProperty(SHREQSupport.SHREQ_HEADER_RECORD)) {
             JSONArrayReader array = shreqRecord.getArray(SHREQSupport.SHREQ_HEADER_RECORD);
             byte[] headerDigest = array.getBinary();
-            String concatenatedHeaders = array.getString();
+            String headerList = array.getString();
             if (array.hasMore()) {
                 error("Excess elements in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
             }
-            if (!SHREQSupport.HEADER_STRING_ARRAY_SYNTAX.matcher(concatenatedHeaders).matches()) {
+            if (!SHREQSupport.HEADER_STRING_ARRAY_SYNTAX.matcher(headerList).matches()) {
                 error("Syntax error in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
             }
-            StringBuilder total = new StringBuilder();
+            StringBuilder headerBlob = new StringBuilder();
             HashSet<String> checker = new HashSet<String>();
-            for (String header : concatenatedHeaders.split(",")) {
+            boolean next = false;
+            for (String header : headerList.split(",")) {
                 String argument = headerMap.get(header);
                 if (argument == null) {
                     error("Missing header in request: " + header);
                 }
-                total.append(header)
-                     .append(':')
-                     .append(SHREQSupport.normalizeHeaderArgument(argument))
-                     .append('\n');
+                if (next) {
+                	headerBlob.append('\n');
+                }
+                next = true;
+                headerBlob.append(header)
+                          .append(':')
+                          .append(SHREQSupport.normalizeHeaderArgument(argument));
                 if (!checker.add(header)) {
                     error("Duplicate header in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
                 }
             }
-            if (!ArrayUtil.compare(headerDigest, getDigest(total.toString()))) {
+            if (!ArrayUtil.compare(headerDigest, getDigest(headerBlob.toString()))) {
                 error("\"" + SHREQSupport.SHREQ_HEADER_RECORD + "\" digest error");
             }
         }

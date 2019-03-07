@@ -28,7 +28,7 @@ import org.webpki.util.ArrayUtil;
 
 public class URIRequestValidation extends ValidationCore {
     
-    static final String QUERY_STRING = SHREQSupport.SHREQ_LABEL + "=";
+    static final String QUERY_STRING = SHREQSupport.SHREQ_SECINF_LABEL + "=";
     static final int    QUERY_LENGTH = QUERY_STRING.length();
 
     public URIRequestValidation(String targetUri,
@@ -56,9 +56,9 @@ public class URIRequestValidation extends ValidationCore {
         }
 
         decodeJwsString(jwsString, false);
-        shreqData = commonDataFilter(JSONParser.parse(JWS_Payload));
+        secinf = commonDataFilter(JSONParser.parse(JWS_Payload));
 
-        if (!ArrayUtil.compare(shreqData.getBinary(SHREQSupport.SHREQ_HASHED_NORMALIZED_URI),
+        if (!ArrayUtil.compare(secinf.getBinary(SHREQSupport.SHREQ_HASHED_TARGET_URI),
                                getDigest(normalizedTargetUri))) {
             error("URI mismatch. Normalized URI: " + normalizedTargetUri);
         }

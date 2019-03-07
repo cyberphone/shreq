@@ -41,27 +41,27 @@ public class JSONRequestValidation extends ValidationCore {
     @Override
     protected void validateImplementation() throws IOException, 
                                                    GeneralSecurityException {
-        JSONObjectReader temp = message.getObject(SHREQSupport.SHREQ_LABEL);
+        JSONObjectReader temp = message.getObject(SHREQSupport.SHREQ_SECINF_LABEL);
         String jwsString = temp.getString(SHREQSupport.SHREQ_JWS_STRING);
         decodeJwsString(jwsString, true);
 
-        shreqData = commonDataFilter(temp);
+        secinf = commonDataFilter(temp);
 
-        String normalizedURI = shreqData.getString(SHREQSupport.SHREQ_TARGET_URI);
+        String normalizedURI = secinf.getString(SHREQSupport.SHREQ_TARGET_URI);
         if (!normalizedURI.equals(normalizedTargetUri)) {
             error("Declared URI=" + normalizedURI + " Actual URI=" + normalizedTargetUri);
         }
         
         // All but the signature element is signed
-        shreqData.removeProperty(SHREQSupport.SHREQ_JWS_STRING);
+        secinf.removeProperty(SHREQSupport.SHREQ_JWS_STRING);
 
         JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
         // However, be nice and restore the signature element after canonicalization
-        JSONObjectWriter msg = new JSONObjectWriter(shreqData);
+        JSONObjectWriter msg = new JSONObjectWriter(secinf);
         msg.setupForRewrite(SHREQSupport.SHREQ_JWS_STRING);
         msg.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
-        shreqData.scanAway(SHREQSupport.SHREQ_JWS_STRING);
+        secinf.scanAway(SHREQSupport.SHREQ_JWS_STRING);
     }
 
     @Override

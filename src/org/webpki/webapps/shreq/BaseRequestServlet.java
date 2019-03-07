@@ -63,6 +63,8 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
     static final String PRECONFREQ             = "/preconfreq";
     static final String EXTCONFREQ2            = "/extconfreq2";
     static final String PRECONFREQ2            = "/preconfreq2";
+    
+    static final int TIME_STAMP_TOLERANCE      = 300000;  // Milliseconds
   
     static Logger logger = Logger.getLogger(BaseRequestServlet.class.getName());
 
@@ -169,7 +171,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             
             // Optional test
             if (enforceTimeStamp()) {
-                validationCore.enforceTimeStamp(5);  // +-5 minutes
+                validationCore.enforceTimeStamp(TIME_STAMP_TOLERANCE, TIME_STAMP_TOLERANCE);
             }
 
             // No exceptions => We did it!
