@@ -105,7 +105,7 @@ public class SHREQSupport {
                           .append(':')
                           .append(httpHeaderData.get(header));
                 if (next) {
-                	headerBlob.append('\n');
+                    headerBlob.append('\n');
                     headerList.append(',');
                 }
                 next = true;

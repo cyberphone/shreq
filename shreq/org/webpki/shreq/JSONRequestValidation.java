@@ -45,7 +45,7 @@ public class JSONRequestValidation extends ValidationCore {
         String jwsString = temp.getString(SHREQSupport.SHREQ_JWS_STRING);
         decodeJwsString(jwsString, true);
 
-        secinf = commonDataFilter(temp);
+        secinf = commonDataFilter(temp, false);
 
         String normalizedURI = secinf.getString(SHREQSupport.SHREQ_TARGET_URI);
         if (!normalizedURI.equals(normalizedTargetUri)) {

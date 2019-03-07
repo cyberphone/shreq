@@ -155,7 +155,7 @@ public abstract class ValidationCore {
         }
         long diff = new GregorianCalendar().getTimeInMillis() - issuedAt.getTimeInMillis();
         if (diff > after || -diff > before) {
-            error("Time stamp diff (" + diff + " ms) outside of limits");
+            error("Time stamp diff (" + diff/1000.0 + " seconds) is outside of limits");
         }
     }
 
@@ -171,9 +171,10 @@ public abstract class ValidationCore {
                     .append(headerMap.get(header))
                     .append('\n');
         }
-        coreData.append("\nJWS Header:\n")
-                .append(JWS_Protected_Header == null ? "Not available\n" : JWS_Protected_Header.toString())
-                .append("\nSHREQ Record:\n")
+        coreData.append("\nJWS Protected Header:\n")
+                .append(JWS_Protected_Header == null ? 
+                                   "Not available\n" : JWS_Protected_Header.toString())
+                .append("\n\"" + SHREQSupport.SHREQ_SECINF_LABEL + "\" Data:\n")
                 .append(secinf == null ? "Not available" : secinf.toString());
         return coreData.toString();
     }
@@ -182,25 +183,27 @@ public abstract class ValidationCore {
         throw new IOException(what);
     }
 
-    protected JSONObjectReader commonDataFilter(JSONObjectReader shreqRecord)
+    protected JSONObjectReader commonDataFilter(JSONObjectReader tempSecinf, boolean iatRequired)
     throws IOException, GeneralSecurityException {
-        if (shreqRecord.hasProperty(SHREQSupport.SHREQ_HASH_ALG_OVERRIDE)) {
+        if (tempSecinf.hasProperty(SHREQSupport.SHREQ_HASH_ALG_OVERRIDE)) {
             hashAlgorithm = SHREQSupport.getHashAlgorithm(
-                    shreqRecord.getString(SHREQSupport.SHREQ_HASH_ALG_OVERRIDE));
+                    tempSecinf.getString(SHREQSupport.SHREQ_HASH_ALG_OVERRIDE));
         } else {
             hashAlgorithm = signatureAlgorithm.getDigestAlgorithm();
         }
         String method = 
-                shreqRecord.getStringConditional(SHREQSupport.SHREQ_HTTP_METHOD, defaultMethod());
+                tempSecinf.getStringConditional(SHREQSupport.SHREQ_HTTP_METHOD, defaultMethod());
         if (!targetMethod.equals(method)){
             error("Declared Method=" + method + " Actual Method=" + targetMethod);
         }       
-        if (shreqRecord.hasProperty(SHREQSupport.SHREQ_ISSUED_AT_TIME)) {
+        if (iatRequired || tempSecinf.hasProperty(SHREQSupport.SHREQ_ISSUED_AT_TIME)) {
             issuedAt = new GregorianCalendar();
-            issuedAt.setTimeInMillis(shreqRecord.getInt53(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000);
+            issuedAt.setTimeInMillis( 
+                    // Nobody [as far as I can tell] use fractions but JWT say you can...
+                    (long)(tempSecinf.getDouble(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000));
         }
-        if (shreqRecord.hasProperty(SHREQSupport.SHREQ_HEADER_RECORD)) {
-            JSONArrayReader array = shreqRecord.getArray(SHREQSupport.SHREQ_HEADER_RECORD);
+        if (tempSecinf.hasProperty(SHREQSupport.SHREQ_HEADER_RECORD)) {
+            JSONArrayReader array = tempSecinf.getArray(SHREQSupport.SHREQ_HEADER_RECORD);
             byte[] headerDigest = array.getBinary();
             String headerList = array.getString();
             if (array.hasMore()) {
@@ -218,7 +221,7 @@ public abstract class ValidationCore {
                     error("Missing header in request: " + header);
                 }
                 if (next) {
-                	headerBlob.append('\n');
+                    headerBlob.append('\n');
                 }
                 next = true;
                 headerBlob.append(header)
@@ -232,7 +235,7 @@ public abstract class ValidationCore {
                 error("\"" + SHREQSupport.SHREQ_HEADER_RECORD + "\" digest error");
             }
         }
-        return shreqRecord;
+        return tempSecinf;
     }
     
     protected byte[] getDigest(String data) throws IOException {
