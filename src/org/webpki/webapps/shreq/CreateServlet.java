@@ -112,7 +112,7 @@ public class CreateServlet extends BaseGuiServlet {
             .append(checkBox(FLG_DEF_METHOD, "Include method also when default", 
                              false, null))
             .append(checkBox(FLG_IAT_PRESENT, "Include time stamp (IAT)", 
-                             true, null))))
+                             true, "iatFlagChange()"))))
         .append(
             "<div style=\"display:flex;justify-content:center\">" +
             "<div class=\"stdbtn\" onclick=\"document.forms.shoot.submit()\">" +
@@ -216,6 +216,11 @@ public class CreateServlet extends BaseGuiServlet {
             "    document.getElementById('" + FLG_JWK_INLINE + "').checked = false;\n" +
             "  }\n" +
             "}\n" +
+            "function iatFlagChange() {\n" +
+            "  if (document.getElementsByName('" + REQUEST_TYPE + "')[1].checked) {\n" +
+            "    document.getElementById('" + FLG_IAT_PRESENT + "').checked = true;\n" +
+            "  }\n" +
+            "}\n" +
             "function restoreSecurityDefaults() {\n" +
             "  let s = document.getElementById('" + PRM_JWS_ALGORITHM + "');\n" +
             "  for (let i = 0; i < s.options.length; i++) {\n" +
@@ -267,6 +272,9 @@ public class CreateServlet extends BaseGuiServlet {
             "function requestChange(jsonRequest) {\n" +
             "  document.getElementById('" + JSON_PAYLOAD + "').style.display= jsonRequest ? 'block' : 'none';\n" +
             "  setMethod(jsonRequest ? '" + DEFAULT_JSON_METHOD + "' : '" + DEFAULT_URI_METHOD + "');\n" +
+            "  if (!jsonRequest) {\n" +
+            "    document.getElementById('" + FLG_IAT_PRESENT + "').checked = true;\n" +
+            "  }\n" +
             "}\n" +
             "function headerFlagChange(flag) {\n" +
             "  showHeaders(flag);\n" +
