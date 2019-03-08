@@ -28,7 +28,7 @@ import org.webpki.util.ArrayUtil;
 
 public class URIRequestValidation extends ValidationCore {
     
-    static final String QUERY_STRING = SHREQSupport.SHREQ_SECINF_LABEL + "=";
+    static final String QUERY_STRING = SHREQSupport.SHREQ_JWS_QUERY_LABEL + "=";
     static final int    QUERY_LENGTH = QUERY_STRING.length();
 
     public URIRequestValidation(String targetUri,

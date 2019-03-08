@@ -35,6 +35,7 @@ public class SHREQSupport {
     private SHREQSupport() {}
     
     public static final String SHREQ_SECINF_LABEL        = ".secinf"; // For JSON based requests only
+    public static final String SHREQ_JWS_QUERY_LABEL     = ".jws";    // For URI based requests only
     
     public static final String SHREQ_TARGET_URI          = "uri";     // For JSON based requests only
     public static final String SHREQ_HASHED_TARGET_URI   = "htu";     // For URI based requests only
@@ -181,7 +182,7 @@ public class SHREQSupport {
 
     public static String addJwsToTargetUri(String targetUri, String jwsString) {
         return targetUri + (targetUri.contains("?") ?
-                '&' : '?') + SHREQSupport.SHREQ_SECINF_LABEL + "=" + jwsString;
+                '&' : '?') + SHREQSupport.SHREQ_JWS_QUERY_LABEL + "=" + jwsString;
     }
 
     public static String normalizeTargetURI(String uri) throws IOException {
