@@ -136,25 +136,25 @@ public class TestVectors {
                    .append(artWork(lineCutter(uri)));
             
             if (optionalJSONBody == null) {
-            	rfcText.append("Decoded JWS Payload:\n")
-     	               .append(artWork(lineCutter(secinf.serializeToString(JSONOutputFormats.PRETTY_PRINT))));
+                rfcText.append("Decoded JWS Payload:\n")
+                       .append(artWork(lineCutter(secinf.serializeToString(JSONOutputFormats.PRETTY_PRINT))));
             } else {
-            	rfcText.append("JSON Body:\n")
-            	       .append(artWork(lineCutter(optionalJSONBody)));
+                rfcText.append("JSON Body:\n")
+                       .append(artWork(lineCutter(optionalJSONBody)));
             }
             if (optionalOverrideHashAlgorithm != null) {
-            	rfcText.append("Note the overridden hash algorithm.\n<vspace blankLines=\"1\"/>\n");
+                rfcText.append("Note the overridden hash algorithm.\n<vspace blankLines=\"1\"/>\n");
             }
             if (!optionalHeaders.isEmpty()) {
-            	StringBuilder headers = new StringBuilder();
-            	for (String header : optionalHeaders.keySet()) {
-            		headers.append(header)
-            		       .append(": ")
-            		       .append(optionalHeaders.get(header))
-            		       .append('\n');
-            	}
-            	rfcText.append("Required HTTP Headers:\n")
-            	       .append(artWork(headers.toString().trim()));
+                StringBuilder headers = new StringBuilder();
+                for (String header : optionalHeaders.keySet()) {
+                    headers.append(header)
+                           .append(": ")
+                           .append(optionalHeaders.get(header))
+                           .append('\n');
+                }
+                rfcText.append("Required HTTP Headers:\n")
+                       .append(artWork(headers.toString().trim()));
             }
             rfcText.append(keyRFCDescription)
                    .append('\n')
@@ -163,32 +163,32 @@ public class TestVectors {
         }
 
         String lineCutter(String string) {
-        	int position = 0;
-        	StringBuilder cutted = new StringBuilder();
-        	for (char c : string.toCharArray()) {
-        		if (c == '\n') {
-        			position = 0;
-        		} else if (position++ == RFC_ARTWORK_LINE_MAX) {
-        			cutted.append('\n');
-        			position = 1;
-        		}
-        		cutted.append(c);
-        	}
-			return cutted.toString().trim();
-		}
+            int position = 0;
+            StringBuilder cutted = new StringBuilder();
+            for (char c : string.toCharArray()) {
+                if (c == '\n') {
+                    position = 0;
+                } else if (position++ == RFC_ARTWORK_LINE_MAX) {
+                    cutted.append('\n');
+                    position = 1;
+                }
+                cutted.append(c);
+            }
+            return cutted.toString().trim();
+        }
 
-		StringBuilder artWork(String string) {
+        StringBuilder artWork(String string) {
             StringBuilder total = new StringBuilder("    <figure align=\"left\"><artwork><![CDATA[  ");
             for (char c : string.toCharArray()) {
-            	total.append(c);
-            	if (c == '\n') {
-            		total.append("  ");
-            	}
+                total.append(c);
+                if (c == '\n') {
+                    total.append("  ");
+                }
             }
             return total.append("]]></artwork></figure>\n");
-		}
+        }
 
-		void jsonRequest(JSONObjectReader message) throws Exception {
+        void jsonRequest(JSONObjectReader message) throws Exception {
             secinf = SHREQSupport.createJSONRequestSecInf(uri,
                                                           method,
                                                           optionalTimeStamp,
@@ -222,7 +222,7 @@ public class TestVectors {
 
     public static void main(String[] argv) {
         try {
-        	SHREQSupport.useDefaultForMethod = true;
+            SHREQSupport.useDefaultForMethod = true;
             keyDirectory = argv[0];
             GregorianCalendar frozen = 
                     ISODateTime.parseDateTime("2019-03-07T09:45:00Z", 
@@ -243,7 +243,7 @@ public class TestVectors {
                 LinkedHashMap<String,String> optionalHeaders
              */
             new Test(
-            		"https://example.com/users/456",
+                    "https://example.com/users/456",
                     "GET",
                     null,
                     MACAlgorithms.HMAC_SHA256,
@@ -253,7 +253,7 @@ public class TestVectors {
                     null);
 
             new Test(
-            		"https://example.com/users",
+                    "https://example.com/users",
                     "POST",
                     john,
                     AsymSignatureAlgorithms.ECDSA_SHA256,
@@ -263,7 +263,7 @@ public class TestVectors {
                     null);
 
             new Test(
-            		"https://example.com/users/456",
+                    "https://example.com/users/456",
                     "PUT",
                     jane,
                     AsymSignatureAlgorithms.ECDSA_SHA256,
@@ -273,7 +273,7 @@ public class TestVectors {
                     null);
 
             new Test(
-            		"https://example.com/users/456",
+                    "https://example.com/users/456",
                     "DELETE",
                     null,
                     AsymSignatureAlgorithms.RSA_SHA256,
