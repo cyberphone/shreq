@@ -18,7 +18,9 @@ package org.webpki.shreq;
 
 import java.io.File;
 import java.io.IOException;
+
 import java.security.KeyPair;
+
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 
@@ -26,14 +28,18 @@ import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
+
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
+
 import org.webpki.jose.JOSEAsymKeyHolder;
 import org.webpki.jose.JOSESupport;
 import org.webpki.jose.JOSESymKeyHolder;
+
 import org.webpki.shreq.SHREQSupport;
+
 import org.webpki.util.Base64;
 import org.webpki.util.DebugFormatter;
 import org.webpki.util.ISODateTime;
