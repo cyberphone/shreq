@@ -42,6 +42,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>CurlServlet</servlet-name>
+        <servlet-class>org.webpki.webapps.shreq.CurlServlet</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>ExtConfReqServlet</servlet-name>
         <servlet-class>org.webpki.webapps.shreq.ExtConfReqServlet</servlet-class>
     </servlet>
@@ -77,8 +82,18 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>CurlServlet</servlet-name>
+        <url-pattern>/curl</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>ExtConfReqServlet</servlet-name>
         <url-pattern>/extconfreq</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ExtConfReqServlet</servlet-name>
+        <url-pattern>/extconfreq/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
@@ -87,14 +102,28 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>ExtConfReq2Servlet</servlet-name>
+        <url-pattern>/extconfreq2/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>PreConfReqServlet</servlet-name>
         <url-pattern>/preconfreq</url-pattern>
     </servlet-mapping>
 
+    <servlet-mapping>
+        <servlet-name>PreConfReqServlet</servlet-name>
+        <url-pattern>/preconfreq/*</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>PreConfReq2Servlet</servlet-name>
         <url-pattern>/preconfreq2</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>PreConfReq2Servlet</servlet-name>
+        <url-pattern>/preconfreq2/*</url-pattern>
     </servlet-mapping>
 
     <security-constraint>

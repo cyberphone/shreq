@@ -18,6 +18,10 @@ package org.webpki.webapps.shreq;
 
 import java.io.IOException;
 
+import java.security.GeneralSecurityException;
+import java.security.PrivateKey;
+
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 
 import java.util.logging.Logger;
@@ -28,7 +32,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
 import org.webpki.crypto.AlgorithmPreferences;
+import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
+
+import org.webpki.jose.JOSEAsymKeyHolder;
+import org.webpki.jose.JOSESupport;
+
+import org.webpki.json.JSONObjectWriter;
+import org.webpki.json.JSONOutputFormats;
+import org.webpki.json.JSONParser;
 
 import org.webpki.shreq.SHREQSupport;
 
@@ -76,19 +88,6 @@ public class BaseGuiServlet extends HttpServlet {
             "  \"statement\": \"Hello signed world!\",\n" +
             "  \"otherProperties\": [2e+3, true]\n" +
             "}";
-    
-    static String _defaultTargetUri;
-    
-    static String getDefaultUri(HttpServletRequest request) {
-        if (_defaultTargetUri == null) {
-            synchronized(CreateServlet.class) {
-                String url = BaseRequestServlet.getUrlFromRequest(request);
-                _defaultTargetUri = url.substring(0, url.indexOf("/shreq/") + 6) +
-                        BaseRequestServlet.PRECONFREQ + "?id=456";
-            }
-        }
-        return _defaultTargetUri;
-    }
     
     static class SelectMethod {
 
@@ -256,5 +255,75 @@ public class BaseGuiServlet extends HttpServlet {
             }
         }
         return headerData;
+    }
+
+    static String sampleJsonRequest_JS;
+    
+    static String sampleJsonRequestUri;
+
+    static String sampleUriRequestUri;
+    
+    static String sampleUriRequestUri2BeSigned;
+
+    protected void getSampleData(HttpServletRequest request) throws IOException {
+        if (sampleJsonRequest_JS == null) {
+            synchronized(this) {
+                try {
+                    String baseUri = BaseRequestServlet.getUrlFromRequest(request);
+                    sampleJsonRequestUri = baseUri.substring(0, baseUri.indexOf("/shreq/") + 6) +
+                            BaseRequestServlet.PRECONFREQ;
+                    sampleUriRequestUri2BeSigned = sampleJsonRequestUri + "/456";
+                    LinkedHashMap<String,String> noHeaders = new LinkedHashMap<String,String>();
+                    AsymSignatureAlgorithms signatureAlgorithm = AsymSignatureAlgorithms.ECDSA_SHA256;
+                    JSONObjectWriter JWS_Protected_Header =
+                            JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
+                                                              signatureAlgorithm);
+                    JSONObjectWriter writer = 
+                            new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
+                    
+                    JSONObjectWriter shreqObject = 
+                            SHREQSupport.createJSONRequestSecInf(sampleJsonRequestUri,
+                                                                 SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
+                                                                 new GregorianCalendar(),
+                                                                 noHeaders,
+                                                                 signatureAlgorithm);
+                    writer.setObject(SHREQSupport.SHREQ_SECINF_LABEL, shreqObject);
+                    byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+        
+                    // Sign it using the provided algorithm and key
+                    PrivateKey privateKey = 
+                            SHREQService.predefinedKeyPairs
+                                .get(signatureAlgorithm
+                                        .getAlgorithmId(AlgorithmPreferences.JOSE)).getPrivate();
+                    String jwsString = 
+                            JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                                                           JWS_Payload,
+                                                           new JOSEAsymKeyHolder(privateKey),
+                                                           true);
+                    // Create the completed object which now is in "writer"
+                    shreqObject.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
+                    
+                    sampleJsonRequest_JS =
+                            HTML.javaScript(writer.serializeToString(JSONOutputFormats.PRETTY_PRINT));
+
+                    shreqObject = 
+                            SHREQSupport.createURIRequestSecInf(sampleUriRequestUri2BeSigned,
+                                                                SHREQSupport.SHREQ_DEFAULT_URI_METHOD,
+                                                                new GregorianCalendar(),
+                                                                noHeaders,
+                                                                signatureAlgorithm);
+                    sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
+                            sampleUriRequestUri2BeSigned,
+                            JOSESupport.createJwsSignature(
+                                    JWS_Protected_Header, 
+                                    shreqObject.serializeToBytes(JSONOutputFormats.NORMALIZED),
+                                    new JOSEAsymKeyHolder(privateKey),
+                                    false));
+
+                } catch (GeneralSecurityException e) {
+                    sampleJsonRequest_JS = "Internal error - Call admin";
+                }
+            }
+        }
     }
 }

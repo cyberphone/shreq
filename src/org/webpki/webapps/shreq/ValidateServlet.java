@@ -19,13 +19,11 @@ package org.webpki.webapps.shreq;
 import java.io.IOException;
 
 import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import java.security.cert.X509Certificate;
 
 import java.text.SimpleDateFormat;
-import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.TimeZone;
 import java.util.Vector;
@@ -42,17 +40,14 @@ import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.json.JSONObjectReader;
-import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
 
-import org.webpki.jose.JOSEAsymKeyHolder;
 import org.webpki.jose.JOSEAsymSignatureValidator;
 import org.webpki.jose.JOSEHmacValidator;
 import org.webpki.jose.JOSESupport;
 
 import org.webpki.shreq.JSONRequestValidation;
-import org.webpki.shreq.SHREQSupport;
 import org.webpki.shreq.URIRequestValidation;
 import org.webpki.shreq.ValidationCore;
 import org.webpki.shreq.ValidationKeyService;
@@ -64,9 +59,6 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
 
     private static final long serialVersionUID = 1L;
 
-    static String sampleJsonRequest_JS;
-    static String sampleUriRequestUri;
-    
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
         try {
@@ -220,62 +212,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-        String targetUri = getDefaultUri(request);
-        if (sampleJsonRequest_JS == null) {
-            synchronized(this) {
-                try {
-                    LinkedHashMap<String,String> noHeaders = new LinkedHashMap<String,String>();
-                    AsymSignatureAlgorithms signatureAlgorithm = AsymSignatureAlgorithms.ECDSA_SHA256;
-                    JSONObjectWriter JWS_Protected_Header =
-                            JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
-                                                              signatureAlgorithm);
-                    JSONObjectWriter writer = 
-                            new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
-                    
-                    JSONObjectWriter shreqObject = 
-                            SHREQSupport.createJSONRequestSecInf(targetUri,
-                                                                 SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
-                                                                 new GregorianCalendar(),
-                                                                 noHeaders,
-                                                                 signatureAlgorithm);
-                    writer.setObject(SHREQSupport.SHREQ_SECINF_LABEL, shreqObject);
-                    byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-        
-                    // Sign it using the provided algorithm and key
-                    PrivateKey privateKey = 
-                            SHREQService.predefinedKeyPairs
-                                .get(signatureAlgorithm
-                                        .getAlgorithmId(AlgorithmPreferences.JOSE)).getPrivate();
-                    String jwsString = 
-                            JOSESupport.createJwsSignature(JWS_Protected_Header, 
-                                                           JWS_Payload,
-                                                           new JOSEAsymKeyHolder(privateKey),
-                                                           true);
-                    // Create the completed object which now is in "writer"
-                    shreqObject.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
-                    
-                    sampleJsonRequest_JS =
-                            HTML.javaScript(writer.serializeToString(JSONOutputFormats.PRETTY_PRINT));
-
-                    shreqObject = 
-                            SHREQSupport.createURIRequestSecInf(targetUri,
-                                                                 SHREQSupport.SHREQ_DEFAULT_URI_METHOD,
-                                                                 new GregorianCalendar(),
-                                                                 noHeaders,
-                                                                 signatureAlgorithm);
-                    sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
-                            targetUri,
-                            JOSESupport.createJwsSignature(
-                                    JWS_Protected_Header, 
-                                    shreqObject.serializeToBytes(JSONOutputFormats.NORMALIZED),
-                                    new JOSEAsymKeyHolder(privateKey),
-                                    false));
-
-                } catch (GeneralSecurityException e) {
-                    sampleJsonRequest_JS = "Internal error - Call admin";
-                }
-            }
-        }
+        getSampleData(request);
         StringBuilder html = new StringBuilder(
             "<form name=\"shoot\" method=\"POST\" action=\"validate\">" +
             "<div class=\"header\">SHREQ Message Validation</div>")
@@ -285,7 +222,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                 true,
                 TARGET_URI,
                 1, 
-                HTML.encode(targetUri),
+                HTML.encode(sampleJsonRequestUri),
                 "Target URI"))
 
         .append(
@@ -333,7 +270,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
         .append("';\n" +
             "  element = document.getElementById('" + TARGET_URI + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
-        .append(targetUri)
+        .append(sampleJsonRequestUri)
         .append("';\n" +
             "}\n" +
             "function showJson(show) {\n" +
@@ -365,10 +302,10 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             "  let element = document.getElementById('" + TARGET_URI + "').children[1];\n" +
             "  if (jsonRequest) {\n" +
             "    if (element.value == '" + sampleUriRequestUri + "') {\n" +
-            "      element.value = '" + targetUri + "';\n" +
+            "      element.value = '" + sampleJsonRequestUri + "';\n" +
             "    }\n" +
             "  } else {\n" +
-            "    if (element.value == '" + targetUri + "') {\n" +
+            "    if (element.value == '" + sampleJsonRequestUri + "') {\n" +
             "      element.value = '" + sampleUriRequestUri + "';\n" +
             "    }\n" +
             "  }\n" +

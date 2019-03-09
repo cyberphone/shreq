@@ -55,18 +55,18 @@ public class CreateServlet extends BaseGuiServlet {
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-        String targetUri = getDefaultUri(request);
-        String selected = "ES256";
+        String defaultAlgorithm = "ES256";
+        getSampleData(request);
         StringBuilder html = new StringBuilder(
-            "<form name=\"shoot\" method=\"POST\" action=\"create\">" +
-            "<div class=\"header\">SHREQ Message Creation</div>")
+                "<form name=\"shoot\" method=\"POST\" action=\"create\">" +
+                "<div class=\"header\">SHREQ Message Creation</div>")
 
         .append(
             HTML.fancyText(
                 true,
                 TARGET_URI,
                 1,
-                "",
+                HTML.encode(sampleJsonRequestUri),
                 "Target URI"))
 
         .append(
@@ -91,7 +91,7 @@ public class CreateServlet extends BaseGuiServlet {
             new StringBuilder()
             .append(
                "<div style=\"display:flex;align-items:center\">")
-            .append(new SelectAlg(selected)
+            .append(new SelectAlg(defaultAlgorithm)
                  .add(MACAlgorithms.HMAC_SHA256)
                  .add(MACAlgorithms.HMAC_SHA384)
                  .add(MACAlgorithms.HMAC_SHA512)
@@ -180,7 +180,7 @@ public class CreateServlet extends BaseGuiServlet {
             "  if (unconditionally || element.value == '') element.value = '{\\n}';\n" +
             "  element = document.getElementById('" + TARGET_URI + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
-        .append(targetUri)
+        .append(sampleJsonRequestUri)
         .append("';\n" +
             "}\n" +
             "function setParameters(alg, unconditionally) {\n" +
@@ -274,6 +274,16 @@ public class CreateServlet extends BaseGuiServlet {
             "  setMethod(jsonRequest ? '" + DEFAULT_JSON_METHOD + "' : '" + DEFAULT_URI_METHOD + "');\n" +
             "  if (!jsonRequest) {\n" +
             "    document.getElementById('" + FLG_IAT_PRESENT + "').checked = true;\n" +
+            "  }\n" +
+            "  let element = document.getElementById('" + TARGET_URI + "').children[1];\n" +
+            "  if (jsonRequest) {\n" +
+            "    if (element.value == '" + sampleUriRequestUri2BeSigned + "') {\n" +
+            "      element.value = '" + sampleJsonRequestUri + "';\n" +
+            "    }\n" +
+            "  } else {\n" +
+            "    if (element.value == '" + sampleJsonRequestUri + "') {\n" +
+            "      element.value = '" + sampleUriRequestUri2BeSigned + "';\n" +
+            "    }\n" +
             "  }\n" +
             "}\n" +
             "function headerFlagChange(flag) {\n" +

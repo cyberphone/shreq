@@ -48,6 +48,11 @@ public class HomeServlet extends HttpServlet {
             "title=\"Validate Signed Request\">" +
             "Validate Signed Request" +
             "</div></td></tr>" +
+            "<tr><td><div class=\"multibtn\" " +
+            "onclick=\"document.location.href='curl'\" " +
+            "title=\"Testing with &quot;Curl&quot;\">" +
+            "Testing with &quot;Curl&quot;" +
+            "</div></td></tr>" +
             "</table></div>" +
             "<div class=\"sitefooter\">Privacy/security notice: No user provided data is " +
             "ever stored or logged on the server; it only processes the data and returns the " +
