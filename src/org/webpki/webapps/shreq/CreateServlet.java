@@ -174,7 +174,7 @@ public class CreateServlet extends BaseGuiServlet {
             "function setUserData(unconditionally) {\n" +
             "  let element = document.getElementById('" + JSON_PAYLOAD + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '")
-        .append(HTML.javaScript(TEST_MESSAGE))
+        .append(sampleJson_JS)
         .append("';\n" +
             "  element = document.getElementById('" + TXT_JWS_EXTRA + "').children[1];\n" +
             "  if (unconditionally || element.value == '') element.value = '{\\n}';\n" +

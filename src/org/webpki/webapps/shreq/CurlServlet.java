@@ -43,7 +43,7 @@ public class CurlServlet extends BaseGuiServlet {
         .append(
             HTML.fancyBox("jsonrequest", "curl" +
                           " -H content-type:application/json" +
-                          " -d &quot;" + sampleJsonRequest_JS_CURL + "&quot; " +
+                          " -d &quot;" + sampleJsonRequest_CURL + "&quot; " +
                           sampleJsonRequestUri, 
                 "JSON based POST request accessed through <b>CURL</b>"))
         .append(

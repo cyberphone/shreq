@@ -83,12 +83,6 @@ public class BaseGuiServlet extends HttpServlet {
     static final String DEFAULT_JSON_METHOD = "POST";
     static final String DEFAULT_URI_METHOD  = "GET";
     
-    static final String TEST_MESSAGE = 
-            "{\n" +
-            "  \"statement\": \"Hello signed world!\",\n" +
-            "  \"otherProperties\": [2e+3, true]\n" +
-            "}";
-    
     static class SelectMethod {
 
         StringBuilder html = new StringBuilder("<select name=\"" +
@@ -257,9 +251,24 @@ public class BaseGuiServlet extends HttpServlet {
         return headerData;
     }
 
+    private static final String TEST_MESSAGE = 
+            "{\n" +
+            "  \"statement\": \"Hello signed world!\",\n" +
+            "  \"otherProperties\": [2e+3, true]\n" +
+            "}";
+
+    // The ! doesn't work great in bash...
+    private static final String CURL_TEST_MESSAGE = 
+            "{\n" +
+            "  \"name\": \"Jane Smith\",\n" +
+            "  \"profession\": \"hacker\"\n" +
+            "}";
+
+    static String sampleJson_JS;
+
     static String sampleJsonRequest_JS;
     
-    static String sampleJsonRequest_JS_CURL;
+    static String sampleJsonRequest_CURL;
 
     static String sampleJsonRequestUri;
 
@@ -271,59 +280,84 @@ public class BaseGuiServlet extends HttpServlet {
         if (sampleJsonRequest_JS == null) {
             synchronized(this) {
                 try {
-                    String baseUri = BaseRequestServlet.getUrlFromRequest(request);
-                    sampleJsonRequestUri = baseUri.substring(0, baseUri.indexOf("/shreq/") + 6) +
+                    String baseUri = 
+                            SHREQSupport.normalizeTargetURI(BaseRequestServlet.getUrlFromRequest(request));
+                    sampleJsonRequestUri = 
+                            baseUri.substring(0, baseUri.indexOf("/shreq/") + 6) +
                             BaseRequestServlet.PRECONFREQ;
                     sampleUriRequestUri2BeSigned = sampleJsonRequestUri + "/456";
+
                     LinkedHashMap<String,String> noHeaders = new LinkedHashMap<String,String>();
+
                     AsymSignatureAlgorithms signatureAlgorithm = AsymSignatureAlgorithms.ECDSA_SHA256;
-                    JSONObjectWriter JWS_Protected_Header =
-                            JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
-                                                              signatureAlgorithm);
-                    JSONObjectWriter writer = 
-                            new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
-                    
-                    JSONObjectWriter shreqObject = 
-                            SHREQSupport.createJSONRequestSecInf(sampleJsonRequestUri,
-                                                                 SHREQSupport.SHREQ_DEFAULT_JSON_METHOD,
-                                                                 new GregorianCalendar(),
-                                                                 noHeaders,
-                                                                 signatureAlgorithm);
-                    writer.setObject(SHREQSupport.SHREQ_SECINF_LABEL, shreqObject);
-                    byte[] JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-        
+
                     // Sign it using the provided algorithm and key
                     PrivateKey privateKey = 
                             SHREQService.predefinedKeyPairs
                                 .get(signatureAlgorithm
                                         .getAlgorithmId(AlgorithmPreferences.JOSE)).getPrivate();
+
+                    JSONObjectWriter JWS_Protected_Header =
+                            JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
+                                                              signatureAlgorithm);
+                    JSONObjectWriter message = 
+                            new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
+                    
+                    JSONObjectWriter secinf = 
+                            SHREQSupport.createJSONRequestSecInf(sampleJsonRequestUri,
+                                                                 null,
+                                                                 new GregorianCalendar(),
+                                                                 noHeaders,
+                                                                 signatureAlgorithm);
+                    message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
+                    byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+        
                     String jwsString = 
                             JOSESupport.createJwsSignature(JWS_Protected_Header, 
                                                            JWS_Payload,
                                                            new JOSEAsymKeyHolder(privateKey),
                                                            true);
                     // Create the completed object which now is in "writer"
-                    shreqObject.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
+                    secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
                     
                     sampleJsonRequest_JS =
-                            HTML.javaScript(writer.serializeToString(JSONOutputFormats.PRETTY_PRINT));
+                            HTML.javaScript(message.serializeToString(JSONOutputFormats.PRETTY_PRINT));
 
-                    sampleJsonRequest_JS_CURL =
-                            writer.serializeToString(JSONOutputFormats.NORMALIZED).replace("\"", "\\\"");
+                    message = new JSONObjectWriter(JSONParser.parse(CURL_TEST_MESSAGE));
+                    
+                    secinf = SHREQSupport.createJSONRequestSecInf(sampleJsonRequestUri,
+                                                                  null,
+                                                                  new GregorianCalendar(),
+                                                                  noHeaders,
+                                                                  signatureAlgorithm);
+                    message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
+                    JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
-                    shreqObject = 
-                            SHREQSupport.createURIRequestSecInf(sampleUriRequestUri2BeSigned,
-                                                                SHREQSupport.SHREQ_DEFAULT_URI_METHOD,
-                                                                new GregorianCalendar(),
-                                                                noHeaders,
-                                                                signatureAlgorithm);
+                    jwsString = 
+                            JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                                                           JWS_Payload,
+                                                           new JOSEAsymKeyHolder(privateKey),
+                                                           true);
+                    // Create the completed object which now is in "writer"
+                    secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
+
+                    sampleJsonRequest_CURL =
+                            message.serializeToString(JSONOutputFormats.NORMALIZED).replace("\"", "\\\"");
+
+                    secinf = SHREQSupport.createURIRequestSecInf(sampleUriRequestUri2BeSigned,
+                                                                 null,
+                                                                 new GregorianCalendar(),
+                                                                 noHeaders,
+                                                                 signatureAlgorithm);
                     sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
                             sampleUriRequestUri2BeSigned,
                             JOSESupport.createJwsSignature(
                                     JWS_Protected_Header, 
-                                    shreqObject.serializeToBytes(JSONOutputFormats.NORMALIZED),
+                                    secinf.serializeToBytes(JSONOutputFormats.NORMALIZED),
                                     new JOSEAsymKeyHolder(privateKey),
                                     false));
+
+                    sampleJson_JS = HTML.javaScript(TEST_MESSAGE);
 
                 } catch (GeneralSecurityException e) {
                     sampleJsonRequest_JS = "Internal error - Call admin";
