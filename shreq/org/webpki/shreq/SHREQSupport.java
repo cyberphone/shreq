@@ -79,6 +79,8 @@ public class SHREQSupport {
     
     public static String overridedHashAlgorithm; // Ugly system wide setting
     
+    public static boolean useDefaultForMethod;   // Ugly system wide setting
+
     private static byte[] digest(SignatureAlgorithms defaultAlgorithmSource, String data)
     throws IOException, GeneralSecurityException {
         return (overridedHashAlgorithm == null ? 
@@ -129,7 +131,8 @@ public class SHREQSupport {
             .setString(SHREQ_TARGET_URI, normalizeTargetURI(targetUri))
 
             // If the method is "POST" this element MAY be skipped
-            .setDynamic((wr) -> targetMethod == null ?
+            .setDynamic((wr) -> targetMethod == null ||
+                      (useDefaultForMethod && targetMethod.equals(SHREQ_DEFAULT_JSON_METHOD)) ?
                     wr : wr.setString(SHREQ_HTTP_METHOD, targetMethod))
 
             // If "message" already has a "DateTime" object this element MAY be skipped
@@ -151,7 +154,8 @@ public class SHREQSupport {
                        getDigestedURI(normalizeTargetURI(targetUri), signatureAlgorithm))
     
             // If the method is "GET" this element MAY be skipped
-            .setDynamic((wr) -> targetMethod == null ? 
+            .setDynamic((wr) -> targetMethod == null || 
+                    (useDefaultForMethod && targetMethod.equals(SHREQ_DEFAULT_URI_METHOD)) ?
             wr : wr.setString(SHREQ_HTTP_METHOD, targetMethod))
             
             // This element MAY be skipped

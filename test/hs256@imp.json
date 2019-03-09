@@ -1,6 +1,0 @@
-{
-    "statement": "Hello signed world!",
-    "otherProperties": [2e+3, true],
-    "$req.uri": "https://localhost:8442/shreq/preconfreq?something=7",
-    "$req.jws": "eyJhbGciOiJIUzI1NiJ9..4kzVlthgyb8WZ3w9OhibS48yW-iBNQkbljwstw23vBw"
-}

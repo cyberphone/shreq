@@ -5,8 +5,9 @@
   <property name="openkeystore.dir" location="${openkeystore}"/>
   <property name="src.dir" value="src"/>
   <property name="shreq.dir" value="shreq"/>
+  <property name="test.dir" value="test"/>
   <property name="temp.dir" value=".tmp"/>
-  <property name="dist.dir" value="dist"/>
+  <property name="dist.dir" location="dist"/>
   <property name="class_war_path" value="WEB-INF/classes/org/webpki/webapps/shreq"/>
 
   <property name="logging" value="false"/>
@@ -16,7 +17,6 @@
   <property name="application" value="${appcorename}.war"/>
   
   <property name="hashalg" value=""/>
-  <property name="key.dir" location="${openkeystore.dir}/json/keys"/>
   <property name="webpki.lib.dir" location="${openkeystore.dir}/library/dist"/>
   <property name="third.party.lib.dir" location="${openkeystore.dir}/resources/third-party-jars"/>
   
@@ -26,8 +26,17 @@
   <property environment="env"/>
   <property name="catalina.home" value="${env.CATALINA_HOME}"/>
 
+  <path id="lib.classpath">
+    <fileset dir="${webpki.lib.dir}">
+      <include name="*.jar"/>
+   </fileset>
+   <fileset dir="${third.party.lib.dir}">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
   <target name="help">
-      <echo message="build tomcat [-Dhashalg=xxx]"/>
+      <echo message="build tomcat [-Dhashalg=xxx] testvectors"/>
   </target>
 
   <target name="_init" unless="app_path">
@@ -62,12 +71,7 @@
            destdir="${temp.dir}"
            includeAntRuntime="false">
         <classpath>
-              <fileset dir="${webpki.lib.dir}">
-                <include name="*.jar"/>
-             </fileset>
-             <fileset dir="${third.party.lib.dir}">
-                <include name="*.jar"/>
-              </fileset>
+            <path refid="lib.classpath"/>
         </classpath>
     </javac>
     <replace file="${temp.dir}/web.xml">
@@ -87,7 +91,6 @@
          <include name="webpki.org-webutil*.jar"/>
       </lib>
       <fileset dir="web"/>
-      <zipfileset dir="${key.dir}" prefix="${class_war_path}"/>
       <zipfileset dir="${openkeystore.dir}/testdata/keys" prefix="${class_war_path}">
         <include name="a*.hex"/>
         <exclude name="*128*"/>
@@ -99,8 +102,36 @@
         <exclude name="*-key.pem"/>
         <exclude name="*-2*"/>
       </zipfileset>
-      <zipfileset file="sample-signature.json" prefix="${class_war_path}"/>
     </war>
+  </target>
+
+  <target name="_compile">
+    <!-- Create temp directory -->
+    <delete dir="${temp.dir}"/>
+    <mkdir dir="${temp.dir}"/>
+    <!-- Compile -->
+    <javac debug="on"
+           srcdir="${shreq.dir}:${test.dir}"
+           destdir="${temp.dir}" 
+           classpathref="lib.classpath"
+           includeAntRuntime="false">
+       <compilerarg value="-Xlint:all,-path"/>
+    </javac>
+  </target>
+
+  <target name="testvectors" depends="_compile">
+    <java fork="yes"
+          classname="org.webpki.shreq.TestVectors"
+            dir="${temp.dir}"
+          failonerror="true">
+      <classpath>
+        <pathelement path="${temp.dir}"/>
+        <path refid="lib.classpath"/>
+      </classpath>
+      <arg value="${openkeystore.dir}/testdata/keys"/>
+      <arg value="${dist.dir}/test.txt"/>
+      <jvmarg value="-Dfile.encoding=UTF8"/>
+    </java>
   </target>
    
 </project>
