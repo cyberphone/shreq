@@ -17,29 +17,11 @@
 package org.webpki.webapps.shreq;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.security.KeyPair;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
 
 import javax.servlet.ServletException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.webpki.crypto.AsymSignatureAlgorithms;
-import org.webpki.crypto.MACAlgorithms;
-import org.webpki.crypto.SignatureAlgorithms;
-import org.webpki.jose.JOSEAsymKeyHolder;
-import org.webpki.jose.JOSESupport;
-import org.webpki.jose.JOSESymKeyHolder;
-import org.webpki.json.JSONObjectReader;
-import org.webpki.json.JSONObjectWriter;
-import org.webpki.json.JSONOutputFormats;
-import org.webpki.json.JSONParser;
-import org.webpki.shreq.SHREQSupport;
-import org.webpki.util.Base64;
-import org.webpki.util.DebugFormatter;
-import org.webpki.util.PEMDecoder;
 
 public class CurlServlet extends BaseGuiServlet {
     
@@ -49,17 +31,27 @@ public class CurlServlet extends BaseGuiServlet {
             throws IOException, ServletException {
         getSampleData(request);
         StringBuilder html = new StringBuilder(
-            "<div class=\"header\">SHREQ Message Creation</div>")
+            "<div class=\"header\">CURL/Browser Online Testing</div>")
 
         .append(
-                HTML.fancyBox("urirequest", sampleUriRequestUri, 
-                        "URI based GET request"))
+            HTML.fancyBox("urirequestbrowser", sampleUriRequestUri, 
+                "URI based GET request which can be directly accessed by a <b>Browser</b>"))
 
         .append(
-                HTML.fancyBox("jsonrequest", sampleJsonRequestUri, 
-                "JSON based POST request"))
+            HTML.fancyBox("urirequest", "curl " + sampleUriRequestUri, 
+                "URI based GET request accessed through <b>CURL</b>"))
         .append(
-            "<div>&nbsp;</div>");
+            HTML.fancyBox("jsonrequest", "curl" +
+                          " -H content-type:application/json" +
+                          " -d &quot;" + sampleJsonRequest_JS_CURL + "&quot; " +
+                          sampleJsonRequestUri, 
+                "JSON based POST request accessed through <b>CURL</b>"))
+        .append(
+             "<div style=\"margin-top:20pt\">CURL: " +
+             "<a href=\"https://curl.haxx.se/\">https://curl.haxx.se/</a></div>" +
+             "<div style=\"margin-top:10pt\">Note that these tests depend on the preconfigured keys " +
+             "used by this Web application (one specific key for each signature algorithm). " +
+             "You can create compatible requests using the <a href=\"create\">create</a> application.</div>");
 
         HTML.standardPage(response, null, html);
     }

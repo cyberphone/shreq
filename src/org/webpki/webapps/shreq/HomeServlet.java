@@ -50,8 +50,8 @@ public class HomeServlet extends HttpServlet {
             "</div></td></tr>" +
             "<tr><td><div class=\"multibtn\" " +
             "onclick=\"document.location.href='curl'\" " +
-            "title=\"Testing with &quot;Curl&quot;\">" +
-            "Testing with &quot;Curl&quot;" +
+            "title=\"Online Testing with CURL/Browser\">" +
+            "Online Testing with CURL/Browser" +
             "</div></td></tr>" +
             "</table></div>" +
             "<div class=\"sitefooter\">Privacy/security notice: No user provided data is " +

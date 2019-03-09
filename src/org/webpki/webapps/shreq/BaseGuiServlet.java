@@ -259,6 +259,8 @@ public class BaseGuiServlet extends HttpServlet {
 
     static String sampleJsonRequest_JS;
     
+    static String sampleJsonRequest_JS_CURL;
+
     static String sampleJsonRequestUri;
 
     static String sampleUriRequestUri;
@@ -305,6 +307,9 @@ public class BaseGuiServlet extends HttpServlet {
                     
                     sampleJsonRequest_JS =
                             HTML.javaScript(writer.serializeToString(JSONOutputFormats.PRETTY_PRINT));
+
+                    sampleJsonRequest_JS_CURL =
+                            writer.serializeToString(JSONOutputFormats.NORMALIZED).replace("\"", "\\\"");
 
                     shreqObject = 
                             SHREQSupport.createURIRequestSecInf(sampleUriRequestUri2BeSigned,
