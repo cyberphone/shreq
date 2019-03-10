@@ -132,18 +132,18 @@ public class TestVectors {
                    .append(method)
                    .append(", Algorithm=")
                    .append(signatureAlgorithmId)
-                   .append("\">\n  <t>\n    Target URI:\n")
+                   .append("\">\n<t>\nTarget URI:\n</t>\n")
                    .append(artWork(lineCutter(uri)));
             
             if (optionalJSONBody == null) {
-                rfcText.append("Decoded JWS Payload:\n")
+                rfcText.append("<t>\nDecoded JWS Payload:\n</t>\n")
                        .append(artWork(lineCutter(secinf.serializeToString(JSONOutputFormats.PRETTY_PRINT))));
             } else {
-                rfcText.append("JSON Body:\n")
+                rfcText.append("<t>\nJSON Body:\n</t>\n")
                        .append(artWork(lineCutter(optionalJSONBody)));
             }
             if (optionalOverrideHashAlgorithm != null) {
-                rfcText.append("Note the overridden hash algorithm.\n<vspace blankLines=\"1\"/>\n");
+                rfcText.append("<t>\nNote the overridden hash algorithm.\n</t>\n");
             }
             if (!optionalHeaders.isEmpty()) {
                 StringBuilder headers = new StringBuilder();
@@ -153,13 +153,14 @@ public class TestVectors {
                            .append(optionalHeaders.get(header))
                            .append('\n');
                 }
-                rfcText.append("Required HTTP Headers:\n")
+                rfcText.append("<t>\nRequired HTTP Headers:\n</t>\n")
                        .append(artWork(headers.toString().trim()));
             }
-            rfcText.append(keyRFCDescription)
-                   .append('\n')
+            rfcText.append("<t>\n")
+                   .append(keyRFCDescription)
+                   .append("\n</t>\n")
                    .append(artWork(keyInRFCText))
-                   .append("  </t>\n</section>\n");
+                   .append("</section>\n");
         }
 
         String lineCutter(String string) {
@@ -178,14 +179,14 @@ public class TestVectors {
         }
 
         StringBuilder artWork(String string) {
-            StringBuilder total = new StringBuilder("    <figure align=\"left\"><artwork><![CDATA[  ");
+            StringBuilder total = new StringBuilder("<t><figure align=\"left\"><artwork><![CDATA[  ");
             for (char c : string.toCharArray()) {
                 total.append(c);
                 if (c == '\n') {
                     total.append("  ");
                 }
             }
-            return total.append("]]></artwork></figure>\n");
+            return total.append("]]></artwork></figure></t>\n");
         }
 
         void jsonRequest(JSONObjectReader message) throws Exception {
@@ -227,8 +228,8 @@ public class TestVectors {
             GregorianCalendar frozen = 
                     ISODateTime.parseDateTime("2019-03-07T09:45:00Z", 
                                               ISODateTime.UTC_NO_SUBSECONDS);
-            String john = "{\"name\":\"John Doe\", \"profession\":\"Hacker\"}";
-            String jane = "{\"name\":\"Jane Smith\", \"profession\":\"System Analyst\"}";
+            String john = "{\"name\":\"John Doe\", \"profession\":\"Unknown\"}";
+            String jane = "{\"name\":\"Jane Smith\", \"profession\":\"Hacker\"}";
             LinkedHashMap<String,String> header = new LinkedHashMap<String,String>();
             header.put("x-debug", "full");
             
