@@ -116,15 +116,15 @@ public class SHREQSupport {
             StringBuilder headerList = new StringBuilder();
             boolean next = false;
             for (String header : httpHeaderData.keySet()) {
-                headerBlob.append(header)
-                          .append(':')
-                          .append(httpHeaderData.get(header));
                 if (next) {
                     headerBlob.append('\n');
                     headerList.append(',');
                 }
                 next = true;
                 headerList.append(header);
+                headerBlob.append(header)
+                          .append(':')
+                          .append(normalizeHeaderArgument(httpHeaderData.get(header)));
             }
             wr.setArray(SHREQ_HEADER_RECORD)
                 .setBinary(digest(signatureAlgorithm, headerBlob.toString()))
@@ -247,7 +247,7 @@ public class SHREQSupport {
         return digest(signatureAlgorithm, alreadyNormalizedUri);      
     }
 
-    public static String normalizeHeaderArgument(String argument) {
+    static String normalizeHeaderArgument(String argument) {
         return argument.trim();
     }
 

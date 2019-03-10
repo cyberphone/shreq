@@ -244,9 +244,7 @@ public class BaseGuiServlet extends HttpServlet {
             for (String headerLine : rawText.split("\n")) {
                 int colon = headerLine.indexOf(':');
                 String headerName = headerLine.substring(0, colon).trim().toLowerCase();
-                if (headerData.put(
-                        headerName,
-                        SHREQSupport.normalizeHeaderArgument(headerLine.substring(colon + 1))) != null) {
+                if (headerData.put(headerName, headerLine.substring(colon + 1)) != null) {
                     throw new IOException("Duplicate header: " + headerName);
                 }
             }
