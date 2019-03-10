@@ -48,6 +48,8 @@ import org.webpki.shreq.URIRequestValidation;
 import org.webpki.shreq.ValidationCore;
 import org.webpki.shreq.ValidationKeyService;
 
+import org.webpki.util.DebugFormatter;
+
 import org.webpki.webutil.ServletUtil;
 
 public abstract class BaseRequestServlet extends HttpServlet implements ValidationKeyService {
@@ -210,8 +212,10 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             if (externallyConfigured()) {
                 extConfError();
             }
-            return new JOSEHmacValidator(SHREQService.predefinedSecretKeys
-                    .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE)),
+            byte[] secretKey = SHREQService.predefinedSecretKeys
+                    .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE));
+            validationCore.setCookie(DebugFormatter.getHexString(secretKey));
+            return new JOSEHmacValidator(secretKey,
                                          (MACAlgorithms) signatureAlgorithm);
         }
         PublicKey validationKey;
@@ -232,6 +236,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
                     .verifyCertificatePath(validationCore.getCertificatePath());
             }
         }
+        validationCore.setCookie(BaseGuiServlet.getPEMFromPublicKey(validationKey));
         return new JOSEAsymSignatureValidator(validationKey, 
                                               (AsymSignatureAlgorithms)signatureAlgorithm);
     }

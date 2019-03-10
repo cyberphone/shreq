@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
@@ -43,6 +44,8 @@ import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
 
 import org.webpki.shreq.SHREQSupport;
+
+import org.webpki.util.Base64;
 
 public class BaseGuiServlet extends HttpServlet {
 
@@ -249,6 +252,12 @@ public class BaseGuiServlet extends HttpServlet {
             }
         }
         return headerData;
+    }
+    
+    static String getPEMFromPublicKey(PublicKey publicKey) {
+        return  "-----BEGIN PUBLIC KEY-----\n" +
+                new Base64().getBase64StringFromBinary(publicKey.getEncoded()) +
+                "\n-----END PUBLIC KEY-----";
     }
 
     private static final String TEST_MESSAGE = 

@@ -45,7 +45,6 @@ import org.webpki.json.JSONParser;
 
 import org.webpki.shreq.SHREQSupport;
 
-import org.webpki.util.Base64;
 import org.webpki.util.DebugFormatter;
 import org.webpki.util.PEMDecoder;
 
@@ -347,9 +346,7 @@ public class CreateServlet extends BaseGuiServlet {
                     keyPair = PEMDecoder.getKeyPair(privateKeyBlob);
                 }
                 privateKeyBlob = null;  // Nullify it after use
-                validationKey = "-----BEGIN PUBLIC KEY-----\n" +
-                                new Base64().getBase64StringFromBinary(keyPair.getPublic().getEncoded()) +
-                                "\n-----END PUBLIC KEY-----";
+                validationKey = getPEMFromPublicKey(keyPair.getPublic());
 
                 // Add other JWS header data that the demo program fixes 
                 if (certOption) {

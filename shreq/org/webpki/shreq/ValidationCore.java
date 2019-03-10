@@ -173,9 +173,11 @@ public abstract class ValidationCore {
         }
         coreData.append("\nJWS Protected Header:\n")
                 .append(JWS_Protected_Header == null ? 
-                                   "Not available\n" : JWS_Protected_Header.toString())
+                                   "NOT AVAILABLE\n" : JWS_Protected_Header.toString())
                 .append("\n\"" + SHREQSupport.SHREQ_SECINF_LABEL + "\" Data:\n")
-                .append(secinf == null ? "Not available" : secinf.toString());
+                .append(secinf == null ? "NOT AVAILABLE\n" : secinf.toString());
+        coreData.append("\nValidation Key:\n")
+                .append(cookie == null ? "NOT AVAILABLE\n" : (String) cookie);
         return coreData.toString();
     }
 
