@@ -178,7 +178,7 @@ public abstract class ValidationCore {
                 .append(secinf == null ? "NOT AVAILABLE\n" : secinf.toString());
         coreData.append("\nValidation Key:\n")
                 .append(cookie == null ? "NOT AVAILABLE\n" : (String) cookie);
-        return coreData.toString();
+        return coreData.append('\n').toString();
     }
 
     protected void error(String what) throws IOException {
