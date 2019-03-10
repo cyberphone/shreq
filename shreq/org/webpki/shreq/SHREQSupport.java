@@ -56,6 +56,18 @@ public class SHREQSupport {
                                                             "HEAD",
                                                             "CONNECT"};
     
+    static final boolean[] RESERVED = new boolean[128];
+    
+    static {
+        RESERVED['&'] = true;
+        RESERVED['?'] = true;
+        RESERVED['/'] = true;
+        RESERVED['#'] = true;
+        RESERVED[':'] = true;
+        RESERVED['%'] = true;
+        RESERVED['='] = true;
+    }
+    
     static final LinkedHashMap<String,HashAlgorithms> hashAlgorithms = 
                     new LinkedHashMap<String,HashAlgorithms>();
     static {
@@ -169,14 +181,44 @@ public class SHREQSupport {
     static final char[] BIG_HEX = {'0', '1', '2', '3', '4', '5', '6', '7',
                                    '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     
+    static void addEscape(StringBuilder escaped, byte b) {
+        escaped.append('%')
+               .append(BIG_HEX[(b & 0xf0) >> 4])
+               .append(BIG_HEX[b & 0xf]);
+    }
+
+    static int getEscape(byte[] utf8, int index) throws IOException {
+        if (index >= utf8.length) {
+            throw new IOException("Malformed URI escape");
+        }
+        byte b = utf8[index];
+        if (b >= 'a' && b <= 'f') {
+            return b - ('a' - 10);
+        }
+        if (b >= '0' && b <= '9') {
+            return b - '0';
+        }
+        if (b >= 'A' && b <= 'F') {
+            return b - ('A' - 10);
+        }
+        throw new IOException("Malformed URI escape");
+    }
+    
     public static String utf8EscapeUri(String uri) throws IOException {
         StringBuilder escaped = new StringBuilder();
         byte[] utf8 = uri.getBytes("utf-8");
-        for (byte b : utf8) {
+        int q = 0;
+        while (q < utf8.length) {
+            byte b = utf8[q++];
+            if (b == '%') {
+                b = (byte)((getEscape(utf8, q++) << 4) + getEscape(utf8, q++));
+                if (b > 0 && RESERVED[b]) {
+                    addEscape(escaped, b);
+                    continue;
+                }
+            }
             if (b < 0) {
-                escaped.append('%')
-                       .append(BIG_HEX[(b & 0xf0) >> 4])
-                       .append(BIG_HEX[b & 0xf]);
+                addEscape(escaped, b);
             } else {
                 escaped.append((char)b);
             }
@@ -184,19 +226,19 @@ public class SHREQSupport {
         return escaped.toString();
     }
 
-    public static String addJwsToTargetUri(String targetUri, String jwsString) {
-        return targetUri + (targetUri.contains("?") ?
-                '&' : '?') + SHREQSupport.SHREQ_JWS_QUERY_LABEL + "=" + jwsString;
-    }
-
     public static String normalizeTargetURI(String uri) throws IOException {
-        // Incomplete...
+        // Incomplete...but still useful in most cases
         if (uri.startsWith("https:")) {
             uri = uri.replace(":443/", "/");
         } else {
             uri = uri.replace(":80/", "/");
         }
         return utf8EscapeUri(uri);
+    }
+
+    public static String addJwsToTargetUri(String targetUri, String jwsString) {
+        return targetUri + (targetUri.contains("?") ?
+                '&' : '?') + SHREQSupport.SHREQ_JWS_QUERY_LABEL + "=" + jwsString;
     }
 
     static byte[] getDigestedURI(String alreadyNormalizedUri,
