@@ -59,13 +59,15 @@ public class SHREQSupport {
     static final boolean[] RESERVED = new boolean[128];
     
     static {
-        RESERVED['&'] = true;
-        RESERVED['?'] = true;
-        RESERVED['/'] = true;
-        RESERVED['#'] = true;
-        RESERVED[':'] = true;
-        RESERVED['%'] = true;
-        RESERVED['='] = true;
+        for (int q = 0; q < 128; q++) {
+            RESERVED[q] = (q < '0' || q > '9') &&
+                          (q < 'A' || q > 'Z') &&
+                          (q < 'a' || q > 'z') &&
+                          q != '-' &&
+                          q != '.' &&
+                          q != '~' &&
+                          q != '_';
+        }
     }
     
     static final LinkedHashMap<String,HashAlgorithms> hashAlgorithms = 
