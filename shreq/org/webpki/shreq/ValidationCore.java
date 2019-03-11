@@ -202,7 +202,7 @@ public abstract class ValidationCore {
             issuedAt = new GregorianCalendar();
             issuedAt.setTimeInMillis( 
                     // Nobody [as far as I can tell] use fractions but JWT say you can...
-                    (long)(tempSecinf.getDouble(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000));
+                    tempSecinf.getInt53(SHREQSupport.SHREQ_ISSUED_AT_TIME) * 1000);
         }
         if (tempSecinf.hasProperty(SHREQSupport.SHREQ_HEADER_RECORD)) {
             JSONArrayReader array = tempSecinf.getArray(SHREQSupport.SHREQ_HEADER_RECORD);

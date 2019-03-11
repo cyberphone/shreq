@@ -73,7 +73,7 @@ public class TestVectors {
         JSONObjectWriter secinf;
         byte[] JWS_Payload;
         JSONObjectWriter JWS_Protected_Header;
-		String signedUri;
+        String signedUri;
 
         Test(String uri,
              String method,
