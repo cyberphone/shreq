@@ -73,6 +73,7 @@ public class TestVectors {
         JSONObjectWriter secinf;
         byte[] JWS_Payload;
         JSONObjectWriter JWS_Protected_Header;
+		String signedUri;
 
         Test(String uri,
              String method,
@@ -136,7 +137,9 @@ public class TestVectors {
                    .append(artWork(lineCutter(uri)));
             
             if (optionalJSONBody == null) {
-                rfcText.append("<t>\nDecoded JWS Payload:\n</t>\n")
+                rfcText.append("<t>\nSigned URI:\n</t>\n")
+                       .append(artWork(lineCutter(signedUri)))
+                       .append("<t>\nDecoded JWS Payload:\n</t>\n")
                        .append(artWork(lineCutter(secinf.serializeToString(JSONOutputFormats.PRETTY_PRINT))));
             } else {
                 rfcText.append("<t>\nJSON Body:\n</t>\n")
@@ -217,7 +220,7 @@ public class TestVectors {
                     secinf.serializeToBytes(JSONOutputFormats.NORMALIZED),
                                                          keyHolder,
                                                          false);
-            uri = SHREQSupport.addJwsToTargetUri(uri, jwsString);
+            signedUri = SHREQSupport.addJwsToTargetUri(uri, jwsString);
         }
     }
 
