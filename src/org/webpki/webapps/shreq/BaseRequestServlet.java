@@ -192,7 +192,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
                     "                       * E R R O R *\n" +
                     "                       *************\n" +
                     getStackTrace(e) + (validationCore == null ? 
-                            "Validation context not available" : validationCore.printCoreData()));
+                            "\nValidation context not available\n" : validationCore.printCoreData()));
         }
     }
 
