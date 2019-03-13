@@ -21,9 +21,12 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
 
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
+import java.text.SimpleDateFormat;
 
+import java.util.Enumeration;
+import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -69,9 +72,14 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
     static final int TIME_STAMP_TOLERANCE      = 300000;  // Milliseconds
   
     static Logger logger = Logger.getLogger(BaseRequestServlet.class.getName());
-
+    
     protected abstract boolean externallyConfigured(); 
     
+    static String getFormattedUTCTime(GregorianCalendar dateTime) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss 'UTC'");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(dateTime.getTime());
+    }
     static String getStackTrace(Exception e) {
         StringBuffer error = new StringBuffer("Stack trace:\n")
             .append(e.getClass().getName())
@@ -178,9 +186,11 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
             // No exceptions => We did it!
             returnResponse(response, HttpServletResponse.SC_OK,
-                    "                  |====================|\n" +
-                    "                  | SUCCESSFUL REQUEST |\n" +
-                    "                  |====================|\n" +
+            		"\n" +
+                    "       |============================================|\n" +
+                    "       | SUCCESSFUL REQUEST " +
+                            getFormattedUTCTime(new GregorianCalendar()) + " |\n" +
+                    "       |============================================|\n" +
                     validationCore.printCoreData());
 
 
@@ -188,6 +198,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
             // Houston, we got a problem...
             returnResponse(response, HttpServletResponse.SC_BAD_REQUEST,
+            		"\n" +
                     "                       *************\n" +
                     "                       * E R R O R *\n" +
                     "                       *************\n" +

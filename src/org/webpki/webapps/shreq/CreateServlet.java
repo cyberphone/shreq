@@ -108,7 +108,7 @@ public class CreateServlet extends BaseGuiServlet {
                              false, "jwkFlagChange(this.checked)"))
             .append(checkBox(FLG_CERT_PATH, "Include provided certificate path (X5C)", 
                              false, "certFlagChange(this.checked)"))
-            .append(checkBox(FLG_DEF_METHOD, "Include method also when default", 
+            .append(checkBox(FLG_DEF_METHOD, "Include method even when default", 
                              false, null))
             .append(checkBox(FLG_IAT_PRESENT, "Include time stamp (IAT)", 
                              true, "iatFlagChange()"))))

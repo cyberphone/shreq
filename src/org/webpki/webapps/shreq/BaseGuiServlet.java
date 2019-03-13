@@ -203,7 +203,7 @@ public class BaseGuiServlet extends HttpServlet {
                "<div class=\"defbtn\" onclick=\"restoreRequestDefaults()\">Restore&nbsp;defaults</div></div>")
            .append(radioButton(REQUEST_TYPE, "JSON based request", "true", true, "requestChange(true)"))
            .append(radioButton(REQUEST_TYPE, "URI based request", "false", false, "requestChange(false)"))
-           .append(checkBox(FLG_HEADERS, "Include HTTP headers as well", 
+           .append(checkBox(FLG_HEADERS, "Include HTTP headers", 
                                  false, "headerFlagChange(this.checked)")));
     }
 
@@ -268,7 +268,7 @@ public class BaseGuiServlet extends HttpServlet {
     private static final String CURL_TEST_MESSAGE = 
             "{\n" +
             "  \"name\": \"Jane Smith\",\n" +
-            "  \"profession\": \"hacker\"\n" +
+            "  \"profession\": \"Hacker\"\n" +
             "}";
 
     static String sampleJson_JS;

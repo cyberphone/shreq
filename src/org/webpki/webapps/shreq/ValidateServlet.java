@@ -23,9 +23,7 @@ import java.security.PublicKey;
 
 import java.security.cert.X509Certificate;
 
-import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
-import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.servlet.ServletException;
@@ -177,9 +175,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             if (validationCore.getIssuedAt() == null) {
                 time = "Request does not contain a time stamp";
             } else {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss 'UTC'");
-                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-                time = sdf.format(validationCore.getIssuedAt().getTime());
+                time = BaseRequestServlet.getFormattedUTCTime(validationCore.getIssuedAt());
             }
             html.append(HTML.fancyBox(
                     "timestamp", 
