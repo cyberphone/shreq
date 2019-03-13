@@ -186,7 +186,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
             // No exceptions => We did it!
             returnResponse(response, HttpServletResponse.SC_OK,
-            		"\n" +
+                    "\n" +
                     "       |============================================|\n" +
                     "       | SUCCESSFUL REQUEST " +
                             getFormattedUTCTime(new GregorianCalendar()) + " |\n" +
@@ -198,7 +198,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
             // Houston, we got a problem...
             returnResponse(response, HttpServletResponse.SC_BAD_REQUEST,
-            		"\n" +
+                    "\n" +
                     "                       *************\n" +
                     "                       * E R R O R *\n" +
                     "                       *************\n" +
