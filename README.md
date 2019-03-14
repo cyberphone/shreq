@@ -6,6 +6,9 @@
 
 This repository contains Java code for SHREQ demo and validation.
 
+### Online Testing
+There is currently a hosted version of this code at https://mobilepki.org/shreq.
+
 ### Testing with "Curl"
 This line POSTs a signed JSON request:
 ```code
