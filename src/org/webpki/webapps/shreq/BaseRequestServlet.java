@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.TimeZone;
+
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -136,15 +137,24 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
 
         // Collect HTTP Headers
         @SuppressWarnings("unchecked")
-        Enumeration<String> headers = request.getHeaderNames();
+        Enumeration<String> headerNames = request.getHeaderNames();
         
         try {
             LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
-            while (headers.hasMoreElements()) {
-                String header = headers.nextElement();
-                if (headerMap.put(header.toLowerCase(), request.getHeader(header)) != null) {
-                    throw new IOException("Duplicate header: " + header);
-                }
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement().toLowerCase();
+                @SuppressWarnings("unchecked")
+                Enumeration<String> headerValues = request.getHeaders(headerName);
+                boolean next = false;
+                do {
+                    String headerValue = headerValues.nextElement().trim();
+                    if (next) {
+                        headerMap.put(headerName, headerMap.get(headerName) + ", " + headerValue);
+                    } else {
+                        headerMap.put(headerName, headerValue);
+                        next = true;
+                    }
+                } while (headerValues.hasMoreElements());
             }
 
             // 3. Determining Request Type
