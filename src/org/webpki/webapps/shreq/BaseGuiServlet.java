@@ -274,6 +274,12 @@ public class BaseGuiServlet extends HttpServlet {
             "  \"profession\": \"Hacker\"\n" +
             "}";
 
+    private static final String CURL_PUT_TEST_MESSAGE = 
+            "{\n" +
+            "  \"name\": \"Jane Smith\",\n" +
+            "  \"profession\": \"Software Engineer\"\n" +
+            "}";
+
     static String sampleJson_JS;
 
     static String sampleJsonRequest_JS;
@@ -356,7 +362,7 @@ public class BaseGuiServlet extends HttpServlet {
                     sampleJsonRequest_CURL =
                             message.serializeToString(JSONOutputFormats.NORMALIZED).replace("\"", "\\\"");
 
-                    message = new JSONObjectWriter(JSONParser.parse(CURL_TEST_MESSAGE));
+                    message = new JSONObjectWriter(JSONParser.parse(CURL_PUT_TEST_MESSAGE));
                     
                     LinkedHashMap<String,String> oneHeader = new LinkedHashMap<String,String>();
                     oneHeader.put("x-debug", "full");
