@@ -361,7 +361,7 @@ public class BaseGuiServlet extends HttpServlet {
                     LinkedHashMap<String,String> oneHeader = new LinkedHashMap<String,String>();
                     oneHeader.put("x-debug", "full");
                     
-                    secinf = SHREQSupport.createJSONRequestSecInf(sampleJsonRequestUri,
+                    secinf = SHREQSupport.createJSONRequestSecInf(sampleUriRequestUri2BeSigned,
                                                                   "PUT",
                                                                   new GregorianCalendar(),
                                                                   oneHeader,

@@ -54,7 +54,7 @@ public class CurlServlet extends BaseGuiServlet {
                           " -H x-debug:full" +
                           " -H content-type:application/json" +
                           " -d &quot;" + sampleJsonRequest_CURL_Header_PUT + "&quot; " +
-                          sampleJsonRequestUri, 
+                          sampleUriRequestUri2BeSigned, 
                 "JSON based PUT request plus HTTP header variable accessed through <b>CURL</b>"))
 
         .append(
