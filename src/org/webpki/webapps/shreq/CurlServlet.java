@@ -40,12 +40,23 @@ public class CurlServlet extends BaseGuiServlet {
         .append(
             HTML.fancyBox("urirequest", "curl " + sampleUriRequestUri, 
                 "URI based GET request accessed through <b>CURL</b>"))
+
         .append(
             HTML.fancyBox("jsonrequest", "curl" +
                           " -H content-type:application/json" +
                           " -d &quot;" + sampleJsonRequest_CURL + "&quot; " +
                           sampleJsonRequestUri, 
                 "JSON based POST request accessed through <b>CURL</b>"))
+
+        .append(
+            HTML.fancyBox("jsonrequest2", "curl" +
+                          " -X PUT" +
+                          " -H x-debug:full" +
+                          " -H content-type:application/json" +
+                          " -d &quot;" + sampleJsonRequest_CURL_Header_PUT + "&quot; " +
+                          sampleJsonRequestUri, 
+                "JSON based PUT request plus HTTP header variable accessed through <b>CURL</b>"))
+
         .append(
              "<div style=\"margin-top:20pt\">CURL: " +
              "<a href=\"https://curl.haxx.se/\">https://curl.haxx.se/</a></div>" +

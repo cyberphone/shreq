@@ -280,6 +280,8 @@ public class BaseGuiServlet extends HttpServlet {
     
     static String sampleJsonRequest_CURL;
 
+    static String sampleJsonRequest_CURL_Header_PUT;
+
     static String sampleJsonRequestUri;
 
     static String sampleUriRequestUri;
@@ -352,6 +354,30 @@ public class BaseGuiServlet extends HttpServlet {
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
 
                     sampleJsonRequest_CURL =
+                            message.serializeToString(JSONOutputFormats.NORMALIZED).replace("\"", "\\\"");
+
+                    message = new JSONObjectWriter(JSONParser.parse(CURL_TEST_MESSAGE));
+                    
+                    LinkedHashMap<String,String> oneHeader = new LinkedHashMap<String,String>();
+                    oneHeader.put("x-debug", "full");
+                    
+                    secinf = SHREQSupport.createJSONRequestSecInf(sampleJsonRequestUri,
+                                                                  "PUT",
+                                                                  new GregorianCalendar(),
+                                                                  oneHeader,
+                                                                  signatureAlgorithm);
+                    message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
+                    JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+
+                    jwsString = 
+                            JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                                                           JWS_Payload,
+                                                           new JOSEAsymKeyHolder(privateKey),
+                                                           true);
+                    // Create the completed object which now is in "writer"
+                    secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
+
+                    sampleJsonRequest_CURL_Header_PUT =
                             message.serializeToString(JSONOutputFormats.NORMALIZED).replace("\"", "\\\"");
 
                     secinf = SHREQSupport.createURIRequestSecInf(sampleUriRequestUri2BeSigned,
