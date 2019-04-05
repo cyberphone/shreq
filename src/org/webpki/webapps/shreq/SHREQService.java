@@ -62,6 +62,8 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
 
     static LinkedHashMap<String, KeyPair> predefinedKeyPairs = new LinkedHashMap<String, KeyPair>();
 
+    static final String BOUNCYCASTLE    = "bouncycastle_first";
+
     class KeyDeclaration {
         
         static final String PRIVATE_KEYS = "privateKeys";
@@ -154,11 +156,15 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
             sampleKey = getEmbeddedResourceString("p256publickey.pem").trim();
 
             /////////////////////////////////////////////////////////////////////////////////////////////
-            // Keys
+            // Optionally load Bouncycastle
             /////////////////////////////////////////////////////////////////////////////////////////////
-            CustomCryptoProvider
-                    .forcedLoad(getPropertyBoolean("bouncycastle_first"));
+            if (!getPropertyString(BOUNCYCASTLE).isEmpty()) {
+                CustomCryptoProvider.forcedLoad(true);
+            }
             
+            /////////////////////////////////////////////////////////////////////////////////////////////
+            // Keys
+            /////////////////////////////////////////////////////////////////////////////////////////////            
             keyDeclarations = 
                     new KeyDeclaration(KeyDeclaration.PRIVATE_KEYS, "privatekey.pem")
                           .addKey(AsymSignatureAlgorithms.ECDSA_SHA256, "p256")
