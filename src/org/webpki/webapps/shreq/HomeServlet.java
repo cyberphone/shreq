@@ -32,7 +32,7 @@ public class HomeServlet extends HttpServlet {
             throws IOException, ServletException {
 
         HTML.standardPage(response, null, new StringBuilder(
-            "<div class=\"header\">SHREQ - Signed HTPP Requests</div>" +
+            "<div class=\"header\">SHREQ - Signed HTTP Requests</div>" +
             "<div style=\"padding-top:15pt\">This site permits testing and debugging systems utilizing a " +
             "scheme for signing HTTP requests tentatively targeted for " +
             "IETF standardization.  For detailed technical information and " +
