@@ -81,8 +81,9 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(dateTime.getTime());
     }
+
     static String getStackTrace(Exception e) {
-        StringBuffer error = new StringBuffer("Stack trace:\n")
+        StringBuilder error = new StringBuilder("Stack trace:\n")
             .append(e.getClass().getName())
             .append(": ")
             .append(e.getMessage());
