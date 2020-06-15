@@ -306,7 +306,7 @@ public class CreateServlet extends BaseGuiServlet {
             String jsonData = getTextArea(request, JSON_PAYLOAD);
             String rawHttpHeaderData = getTextArea(request, TXT_OPT_HEADERS);
             String method = getParameter(request, PRM_HTTP_METHOD);
-            boolean jsonRequest = new Boolean(getParameter(request, REQUEST_TYPE));
+            boolean jsonRequest = Boolean.valueOf(getParameter(request, REQUEST_TYPE));
             JSONObjectReader additionalHeaderData = JSONParser.parse(getParameter(request, TXT_JWS_EXTRA));
             boolean keyInlining = request.getParameter(FLG_JWK_INLINE) != null;
             boolean certOption = request.getParameter(FLG_CERT_PATH) != null;

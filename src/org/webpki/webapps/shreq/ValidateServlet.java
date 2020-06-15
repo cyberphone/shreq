@@ -67,7 +67,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
             // Get the two input data items
             String targetUri = getParameter(request, TARGET_URI);
             String signedJsonObject = getParameter(request, JSON_PAYLOAD);
-            boolean jsonRequest = new Boolean(getParameter(request, REQUEST_TYPE));
+            boolean jsonRequest = Boolean.valueOf(getParameter(request, REQUEST_TYPE));
             LinkedHashMap<String,String> httpHeaderData = createHeaderData(getParameter(request, TXT_OPT_HEADERS));
             String validationKey = getParameter(request, JWS_VALIDATION_KEY);
             String targetMethod = getParameter(request, PRM_HTTP_METHOD);
