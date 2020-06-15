@@ -33,7 +33,6 @@ import javax.servlet.ServletContextListener;
 
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
-import org.webpki.crypto.CustomCryptoProvider;
 import org.webpki.crypto.KeyStoreVerifier;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
@@ -155,13 +154,6 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
             /////////////////////////////////////////////////////////////////////////////////////////////
             sampleKey = getEmbeddedResourceString("p256publickey.pem").trim();
 
-            /////////////////////////////////////////////////////////////////////////////////////////////
-            // Optionally load Bouncycastle
-            /////////////////////////////////////////////////////////////////////////////////////////////
-            if (!getPropertyString(BOUNCYCASTLE).isEmpty()) {
-                CustomCryptoProvider.forcedLoad(true);
-            }
-            
             /////////////////////////////////////////////////////////////////////////////////////////////
             // Keys
             /////////////////////////////////////////////////////////////////////////////////////////////            

@@ -76,10 +76,10 @@ public class HTML {
                     .append("</script>");
         }
         html.append("</head><body>" +
-            "<div style=\"display:flex;flex-wrap:wrap-reverse;justify-content:space-between\">" +
+            "<div style=\"display:flex;flex-wrap:wrap-reverse;justify-content:space-between\"><div>" +
             "<img src=\"images/thelab.svg\" " +
             "style=\"cursor:pointer;height:25pt;padding-bottom:10pt;margin-right:30pt\"" +
-            " onclick=\"document.location.href='home'\" title=\"Home of the lab...\"/>" +
+            " onclick=\"document.location.href='home'\" title=\"Home of the lab...\"/></div>" +
             "<div style=\"display:flex;padding-bottom:10pt\">" +
             "<a href=\"https://github.com/cyberphone/shreq\" target=\"_blank\"><img src=\"images/shreq.svg\" " +
             "style=\"height:25pt\" " +
