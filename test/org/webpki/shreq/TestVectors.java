@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2019 WebPKI.org (http://webpki.org).
+ *  Copyright 2018-2020 WebPKI.org (http://webpki.org).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,8 +37,6 @@ import org.webpki.json.JSONParser;
 import org.webpki.jose.JOSEAsymKeyHolder;
 import org.webpki.jose.JOSESupport;
 import org.webpki.jose.JOSESymKeyHolder;
-
-import org.webpki.shreq.SHREQSupport;
 
 import org.webpki.util.Base64;
 import org.webpki.util.DebugFormatter;
@@ -204,6 +202,7 @@ public class TestVectors {
             String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
                                                               JWS_Payload,
                                                               keyHolder,
+                                                              signatureAlgorithm,
                                                               true);
             // Create the completed object which now is in "writer"
             secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -219,6 +218,7 @@ public class TestVectors {
             String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
                     secinf.serializeToBytes(JSONOutputFormats.NORMALIZED),
                                                          keyHolder,
+                                                         signatureAlgorithm,
                                                          false);
             signedUri = SHREQSupport.addJwsToTargetUri(uri, jwsString);
         }

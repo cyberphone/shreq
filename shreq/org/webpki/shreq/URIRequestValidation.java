@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2019 WebPKI.org (http://webpki.org).
+ *  Copyright 2018-2020 WebPKI.org (http://webpki.org).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class URIRequestValidation extends ValidationCore {
         }
 
         decodeJwsString(jwsString, false);
-        secinf = commonDataFilter(JSONParser.parse(JWS_Payload), true);
+        secinf = commonDataFilter(JSONParser.parse(jwsPayload), true);
 
         if (!ArrayUtil.compare(secinf.getBinary(SHREQSupport.SHREQ_HASHED_TARGET_URI),
                                getDigest(normalizedTargetUri))) {

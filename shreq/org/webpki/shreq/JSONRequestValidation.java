@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2019 WebPKI.org (http://webpki.org).
+ *  Copyright 2018-2020 WebPKI.org (http://webpki.org).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class JSONRequestValidation extends ValidationCore {
         // All but the signature element is signed
         secinf.removeProperty(SHREQSupport.SHREQ_JWS_STRING);
 
-        JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
+        jwsPayload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
         // However, be nice and restore the signature element after canonicalization
         JSONObjectWriter msg = new JSONObjectWriter(secinf);

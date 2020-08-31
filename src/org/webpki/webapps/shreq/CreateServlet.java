@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2019 WebPKI.org (http://webpki.org).
+ *  Copyright 2018-2020 WebPKI.org (http://webpki.org).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
@@ -315,16 +316,22 @@ public class CreateServlet extends BaseGuiServlet {
             boolean httpHeaders = request.getParameter(FLG_HEADERS) != null;
             LinkedHashMap<String, String> httpHeaderData = 
                     createHeaderData(httpHeaders ? rawHttpHeaderData : "");
-            SignatureAlgorithms algorithm = 
-                    JOSESupport.getSignatureAlgorithm(getParameter(request, PRM_JWS_ALGORITHM));
 
+            // Get wanted signature algorithm
+            String algorithmParam = getParameter(request, PRM_JWS_ALGORITHM);
+            SignatureAlgorithms signatureAlgorithm = algorithmParam.startsWith("HS") ?
+                    MACAlgorithms.getAlgorithmFromId(algorithmParam, 
+                                                     AlgorithmPreferences.JOSE)
+                                                                            :
+                    AsymSignatureAlgorithms.getAlgorithmFromId(algorithmParam, 
+                                                               AlgorithmPreferences.JOSE);
             // Create the minimal JWS header
-            JSONObjectWriter JWS_Protected_Header =
-                    JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), algorithm);
+            JSONObjectWriter jwsProtectedHeader =
+                    JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), signatureAlgorithm);
 
             // Add any optional (by the user specified) arguments
             for (String key : additionalHeaderData.getProperties()) {
-                JWS_Protected_Header.copyElement(key, key, additionalHeaderData);
+                jwsProtectedHeader.copyElement(key, key, additionalHeaderData);
             }
             
             // Get the signature key
@@ -332,7 +339,7 @@ public class CreateServlet extends BaseGuiServlet {
             String validationKey;
             
             // Symmetric or asymmetric?
-            if (algorithm.isSymmetric()) {
+            if (signatureAlgorithm.isSymmetric()) {
                 validationKey = getParameter(request, TXT_SECRET_KEY);
                 keyHolder = new JOSESymKeyHolder(DebugFormatter.getByteArrayFromHex(validationKey));
             } else {
@@ -350,11 +357,11 @@ public class CreateServlet extends BaseGuiServlet {
 
                 // Add other JWS header data that the demo program fixes 
                 if (certOption) {
-                    JOSESupport.setCertificatePath(JWS_Protected_Header,
+                    JOSESupport.setCertificatePath(jwsProtectedHeader,
                             PEMDecoder.getCertificatePath(getBinaryParameter(request,
                                                                              TXT_CERT_PATH)));
                 } else if (keyInlining) {
-                    JOSESupport.setPublicKey(JWS_Protected_Header, keyPair.getPublic());
+                    JOSESupport.setPublicKey(jwsProtectedHeader, keyPair.getPublic());
                 }
                 keyHolder = new JOSEAsymKeyHolder(keyPair.getPrivate());
             }
@@ -374,14 +381,15 @@ public class CreateServlet extends BaseGuiServlet {
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null,
                                 httpHeaderData,
-                                algorithm);
+                                signatureAlgorithm);
                 message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
                 byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
                 // Sign it using the provided algorithm and key
-                String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                String jwsString = JOSESupport.createJwsSignature(jwsProtectedHeader, 
                                                                   JWS_Payload,
                                                                   keyHolder,
+                                                                  signatureAlgorithm,
                                                                   true);
                 keyHolder = null;  // Nullify it after use
         
@@ -410,13 +418,14 @@ public class CreateServlet extends BaseGuiServlet {
                                         method : null,
                                 iatOption ? new GregorianCalendar() : null,
                                 httpHeaderData,
-                                algorithm);
+                                signatureAlgorithm);
                 targetUri = SHREQSupport.addJwsToTargetUri(
                         targetUri,
                         JOSESupport.createJwsSignature(
-                                JWS_Protected_Header, 
+                                jwsProtectedHeader, 
                                 writer.serializeToBytes(JSONOutputFormats.NORMALIZED),
                                 keyHolder,
+                                signatureAlgorithm,
                                 false));
             }
 

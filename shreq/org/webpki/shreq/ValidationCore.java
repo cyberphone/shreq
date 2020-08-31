@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2019 WebPKI.org (http://webpki.org).
+ *  Copyright 2018-2020 WebPKI.org (http://webpki.org).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,7 +29,10 @@ import java.util.LinkedHashMap;
 
 import java.util.logging.Logger;
 
+import org.webpki.crypto.AlgorithmPreferences;
+import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.HashAlgorithms;
+import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.jose.JOSESupport;
@@ -47,11 +50,11 @@ public abstract class ValidationCore {
 
     protected String jwsProtectedHeaderB64U;
 
-    protected JSONObjectReader JWS_Protected_Header;
+    protected JSONObjectReader jwsProtectedHeader;
     
-    protected byte[] JWS_Payload;
+    protected byte[] jwsPayload;
 
-    protected byte[] JWS_Signature;
+    protected String jwsSignatureB64U;
 
     private boolean validationMode;
     
@@ -106,11 +109,11 @@ public abstract class ValidationCore {
     }
 
     public byte[] getJwsPayload() {
-        return JWS_Payload;
+        return jwsPayload;
     }
 
     public JSONObjectReader getJwsProtectedHeader() {
-        return JWS_Protected_Header;
+        return jwsProtectedHeader;
     }
 
     public JSONObjectReader getSHREQRecord() {
@@ -172,8 +175,8 @@ public abstract class ValidationCore {
                     .append('\n');
         }
         coreData.append("\nJWS Protected Header:\n")
-                .append(JWS_Protected_Header == null ? 
-                                   "NOT AVAILABLE\n" : JWS_Protected_Header.toString())
+                .append(jwsProtectedHeader == null ? 
+                                   "NOT AVAILABLE\n" : jwsProtectedHeader.toString())
                 .append("\n\"" + SHREQSupport.SHREQ_SECINF_LABEL + "\" Data:\n")
                 .append(secinf == null ? "NOT AVAILABLE\n" : secinf.toString());
         coreData.append("\nValidation Key:\n")
@@ -258,20 +261,38 @@ public abstract class ValidationCore {
                 error("JWS syntax, must be Header..Signature");
             }
         } else {
-            JWS_Payload = Base64URL.decode(jwsString.substring(endOfHeader + 1, lastDot));
+            jwsPayload = Base64URL.decode(jwsString.substring(endOfHeader + 1, lastDot));
         }
         // :2
         jwsProtectedHeaderB64U = jwsString.substring(0, endOfHeader);
         
         // :3-4
-        JWS_Protected_Header = JSONParser.parse(Base64URL.decode(jwsProtectedHeaderB64U));
-        signatureAlgorithm = JOSESupport.getSignatureAlgorithm(JWS_Protected_Header);
-        keyId = JWS_Protected_Header.hasProperty(JOSESupport.KID_JSON) ?
-                JOSESupport.getKeyId(JWS_Protected_Header) : null;
-        publicKey = JWS_Protected_Header.hasProperty(JOSESupport.JWK_JSON) ?
-                JOSESupport.getPublicKey(JWS_Protected_Header) : null;
-        certificatePath = JWS_Protected_Header.hasProperty(JOSESupport.X5C_JSON) ?
-                        JOSESupport.getCertificatePath(JWS_Protected_Header) : null;
+        jwsProtectedHeader = JSONParser.parse(Base64URL.decode(jwsProtectedHeaderB64U));
+
+        // :5-6
+        jwsSignatureB64U = jwsString.substring(lastDot + 1);
+
+        // Start decoding the JWS header.  Algorithm is the minimum
+        String algorithmParam = jwsProtectedHeader.getString(JOSESupport.ALG_JSON);
+        if (algorithmParam.equals(JOSESupport.EdDSA)) {
+            signatureAlgorithm = jwsSignatureB64U.length() < 100 ? 
+                    AsymSignatureAlgorithms.ED25519 : AsymSignatureAlgorithms.ED448;
+        } else if (algorithmParam.startsWith("HS")) {
+            signatureAlgorithm = 
+                    MACAlgorithms.getAlgorithmFromId(algorithmParam,
+                                                     AlgorithmPreferences.JOSE);
+        } else {
+            signatureAlgorithm = 
+                    AsymSignatureAlgorithms.getAlgorithmFromId(algorithmParam, 
+                                                               AlgorithmPreferences.JOSE);
+        }        
+        
+        keyId = jwsProtectedHeader.hasProperty(JOSESupport.KID_JSON) ?
+                JOSESupport.getKeyId(jwsProtectedHeader) : null;
+        publicKey = jwsProtectedHeader.hasProperty(JOSESupport.JWK_JSON) ?
+                JOSESupport.getPublicKey(jwsProtectedHeader) : null;
+        certificatePath = jwsProtectedHeader.hasProperty(JOSESupport.X5C_JSON) ?
+                        JOSESupport.getCertificatePath(jwsProtectedHeader) : null;
         if (publicKey != null) {
             if (signatureAlgorithm.isSymmetric()) {
                 throw new GeneralSecurityException("Public key and HMAC algorithm");
@@ -286,8 +307,6 @@ public abstract class ValidationCore {
         }
 
         
-        // :5-6
-        JWS_Signature = Base64URL.decode(jwsString.substring(lastDot + 1));
     }
 
 
@@ -310,8 +329,8 @@ public abstract class ValidationCore {
         // 6.9:2-4
         JOSESupport.validateJwsSignature(
                 jwsProtectedHeaderB64U, 
-                JWS_Payload,
-                JWS_Signature, 
+                jwsPayload,
+                jwsSignatureB64U, 
                 validationKeyService.getSignatureValidator(
                         this,
                         signatureAlgorithm, 

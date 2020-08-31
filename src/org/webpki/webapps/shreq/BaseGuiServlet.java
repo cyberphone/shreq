@@ -1,5 +1,5 @@
 /*
- *  Copyright 2006-2019 WebPKI.org (http://webpki.org).
+ *  Copyright 2018-2020 WebPKI.org (http://webpki.org).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -315,9 +315,6 @@ public class BaseGuiServlet extends HttpServlet {
                                 .get(signatureAlgorithm
                                         .getAlgorithmId(AlgorithmPreferences.JOSE)).getPrivate();
 
-                    JSONObjectWriter JWS_Protected_Header =
-                            JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
-                                                              signatureAlgorithm);
                     JSONObjectWriter message = 
                             new JSONObjectWriter(JSONParser.parse(TEST_MESSAGE));
                     
@@ -331,9 +328,10 @@ public class BaseGuiServlet extends HttpServlet {
                     byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
                     String jwsString = 
-                            JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                            JOSESupport.createJwsSignature(null, 
                                                            JWS_Payload,
                                                            new JOSEAsymKeyHolder(privateKey),
+                                                           signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -352,9 +350,10 @@ public class BaseGuiServlet extends HttpServlet {
                     JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
                     jwsString = 
-                            JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                            JOSESupport.createJwsSignature(null, 
                                                            JWS_Payload,
                                                            new JOSEAsymKeyHolder(privateKey),
+                                                           signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -376,9 +375,10 @@ public class BaseGuiServlet extends HttpServlet {
                     JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
                     jwsString = 
-                            JOSESupport.createJwsSignature(JWS_Protected_Header, 
+                            JOSESupport.createJwsSignature(null, 
                                                            JWS_Payload,
                                                            new JOSEAsymKeyHolder(privateKey),
+                                                           signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -394,9 +394,10 @@ public class BaseGuiServlet extends HttpServlet {
                     sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
                             sampleUriRequestUri2BeSigned,
                             JOSESupport.createJwsSignature(
-                                    JWS_Protected_Header, 
+                                    null, 
                                     secinf.serializeToBytes(JSONOutputFormats.NORMALIZED),
                                     new JOSEAsymKeyHolder(privateKey),
+                                    signatureAlgorithm,
                                     false));
 
                     sampleJson_JS = HTML.javaScript(TEST_MESSAGE);
