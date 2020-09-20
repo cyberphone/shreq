@@ -34,9 +34,9 @@ import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
 
-import org.webpki.jose.JOSEAsymKeyHolder;
+import org.webpki.jose.AsymKeyHolder;
 import org.webpki.jose.JOSESupport;
-import org.webpki.jose.JOSESymKeyHolder;
+import org.webpki.jose.SymKeyHolder;
 
 import org.webpki.util.Base64;
 import org.webpki.util.DebugFormatter;
@@ -104,7 +104,7 @@ public class TestVectors {
                 String keyInHex = utf8(readKey(keyAlgName + "bitkey.hex"));
                 keyInRFCText = keyInHex;
                 keyRFCDescription = "Symmetric signature validation key, here in hexadecimal notation:";
-                keyHolder = new JOSESymKeyHolder(DebugFormatter.getByteArrayFromHex(keyInHex));
+                keyHolder = new SymKeyHolder(DebugFormatter.getByteArrayFromHex(keyInHex));
             } else {
                 KeyPair keyPair = PEMDecoder.getKeyPair(readKey(keyAlgName + "privatekey.pem"));
                 keyRFCDescription = "Public signature validation key, here in PEM format:";
@@ -112,7 +112,7 @@ public class TestVectors {
                     "-----BEGIN PUBLIC KEY-----\n" +
                     new Base64(RFC_ARTWORK_LINE_MAX).getBase64StringFromBinary(keyPair.getPublic().getEncoded()) +
                     "\n-----END PUBLIC KEY-----";
-                keyHolder = new JOSEAsymKeyHolder(keyPair.getPrivate());
+                keyHolder = new AsymKeyHolder(keyPair.getPrivate());
             }
 
             JWS_Protected_Header = JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 

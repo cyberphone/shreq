@@ -36,7 +36,7 @@ import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.jose.JOSESupport;
-
+import org.webpki.jose.JwsDecoder;
 import org.webpki.json.JSONArrayReader;
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONParser;
@@ -77,6 +77,8 @@ public abstract class ValidationCore {
     protected X509Certificate[] certificatePath;
     
     JSONObjectReader secinf;
+    
+    JwsDecoder jwsDecoder;
     
     private Object cookie;
 
@@ -250,6 +252,7 @@ public abstract class ValidationCore {
     // 6.6
     protected void decodeJwsString(String jwsString, boolean detached) throws IOException,
                                                                                GeneralSecurityException {
+        jwsDecoder = new JwsDecoder(jwsString);
         // :1
         int endOfHeader = jwsString.indexOf('.');
         int lastDot = jwsString.lastIndexOf('.');
@@ -327,14 +330,14 @@ public abstract class ValidationCore {
         // JWS_Protected_Header.checkForUnread();
         
         // 6.9:2-4
-        JOSESupport.validateJwsSignature(
-                jwsProtectedHeaderB64U, 
-                jwsPayload,
-                jwsSignatureB64U, 
-                validationKeyService.getSignatureValidator(
-                        this,
-                        signatureAlgorithm, 
-                        certificatePath == null ? publicKey : certificatePath[0].getPublicKey(),
-                        keyId));
+        JOSESupport.validateJwsSignature(jwsDecoder, 
+                                         jwsPayload,
+                                         validationKeyService.getSignatureValidator(
+                                             this,
+                                             signatureAlgorithm, 
+                                             certificatePath == null ? 
+                                                           publicKey : 
+                                                           certificatePath[0].getPublicKey(),
+                                             keyId));
     }
 }

@@ -57,6 +57,7 @@ public class URIRequestValidation extends ValidationCore {
 
         decodeJwsString(jwsString, false);
         secinf = commonDataFilter(JSONParser.parse(jwsPayload), true);
+        jwsPayload = null;
 
         if (!ArrayUtil.compare(secinf.getBinary(SHREQSupport.SHREQ_HASHED_TARGET_URI),
                                getDigest(normalizedTargetUri))) {

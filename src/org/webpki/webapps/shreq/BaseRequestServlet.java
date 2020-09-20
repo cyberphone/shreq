@@ -37,12 +37,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.webpki.crypto.AlgorithmPreferences;
-import org.webpki.crypto.AsymSignatureAlgorithms;
-import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.JOSEAsymSignatureValidator;
-import org.webpki.jose.JOSEHmacValidator;
+import org.webpki.jose.AsymSignatureValidator;
+import org.webpki.jose.HmacValidator;
 import org.webpki.jose.JOSESupport;
 
 import org.webpki.json.JSONParser;
@@ -237,8 +235,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             byte[] secretKey = SHREQService.predefinedSecretKeys
                     .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE));
             validationCore.setCookie(DebugFormatter.getHexString(secretKey));
-            return new JOSEHmacValidator(secretKey,
-                                         (MACAlgorithms) signatureAlgorithm);
+            return new HmacValidator(secretKey);
         }
         PublicKey validationKey;
         if (externallyConfigured()) {
@@ -259,7 +256,6 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             }
         }
         validationCore.setCookie(BaseGuiServlet.getPEMFromPublicKey(validationKey));
-        return new JOSEAsymSignatureValidator(validationKey, 
-                                              (AsymSignatureAlgorithms)signatureAlgorithm);
+        return new AsymSignatureValidator(validationKey);
     }
 }

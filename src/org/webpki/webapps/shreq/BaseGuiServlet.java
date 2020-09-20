@@ -36,7 +36,7 @@ import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.JOSEAsymKeyHolder;
+import org.webpki.jose.AsymKeyHolder;
 import org.webpki.jose.JOSESupport;
 
 import org.webpki.json.JSONObjectWriter;
@@ -330,7 +330,7 @@ public class BaseGuiServlet extends HttpServlet {
                     String jwsString = 
                             JOSESupport.createJwsSignature(null, 
                                                            JWS_Payload,
-                                                           new JOSEAsymKeyHolder(privateKey),
+                                                           new AsymKeyHolder(privateKey),
                                                            signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
@@ -352,7 +352,7 @@ public class BaseGuiServlet extends HttpServlet {
                     jwsString = 
                             JOSESupport.createJwsSignature(null, 
                                                            JWS_Payload,
-                                                           new JOSEAsymKeyHolder(privateKey),
+                                                           new AsymKeyHolder(privateKey),
                                                            signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
@@ -377,7 +377,7 @@ public class BaseGuiServlet extends HttpServlet {
                     jwsString = 
                             JOSESupport.createJwsSignature(null, 
                                                            JWS_Payload,
-                                                           new JOSEAsymKeyHolder(privateKey),
+                                                           new AsymKeyHolder(privateKey),
                                                            signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
@@ -396,7 +396,7 @@ public class BaseGuiServlet extends HttpServlet {
                             JOSESupport.createJwsSignature(
                                     null, 
                                     secinf.serializeToBytes(JSONOutputFormats.NORMALIZED),
-                                    new JOSEAsymKeyHolder(privateKey),
+                                    new AsymKeyHolder(privateKey),
                                     signatureAlgorithm,
                                     false));
 

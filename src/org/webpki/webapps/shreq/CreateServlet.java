@@ -35,9 +35,9 @@ import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.JOSEAsymKeyHolder;
+import org.webpki.jose.AsymKeyHolder;
 import org.webpki.jose.JOSESupport;
-import org.webpki.jose.JOSESymKeyHolder;
+import org.webpki.jose.SymKeyHolder;
 
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONObjectWriter;
@@ -341,7 +341,7 @@ public class CreateServlet extends BaseGuiServlet {
             // Symmetric or asymmetric?
             if (signatureAlgorithm.isSymmetric()) {
                 validationKey = getParameter(request, TXT_SECRET_KEY);
-                keyHolder = new JOSESymKeyHolder(DebugFormatter.getByteArrayFromHex(validationKey));
+                keyHolder = new SymKeyHolder(DebugFormatter.getByteArrayFromHex(validationKey));
             } else {
                 // To simplify UI we require PKCS #8 with the public key embedded
                 // but we also support JWK which also has the public key
@@ -363,7 +363,7 @@ public class CreateServlet extends BaseGuiServlet {
                 } else if (keyInlining) {
                     JOSESupport.setPublicKey(jwsProtectedHeader, keyPair.getPublic());
                 }
-                keyHolder = new JOSEAsymKeyHolder(keyPair.getPrivate());
+                keyHolder = new AsymKeyHolder(keyPair.getPrivate());
             }
             String signedJSONRequest;
             if (jsonRequest) {
