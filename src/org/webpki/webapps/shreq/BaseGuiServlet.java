@@ -38,7 +38,7 @@ import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.jose.AsymKeyHolder;
 import org.webpki.jose.JOSESupport;
-
+import org.webpki.jose.JwsEncoder;
 import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
@@ -326,12 +326,13 @@ public class BaseGuiServlet extends HttpServlet {
                                                                  signatureAlgorithm);
                     message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
                     byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-        
+                            
                     String jwsString = 
-                            JOSESupport.createJwsSignature(null, 
+                            JOSESupport.createJwsSignature(new JwsEncoder(
+                                                               new AsymKeyHolder(
+                                                                       privateKey, 
+                                                                       signatureAlgorithm)), 
                                                            JWS_Payload,
-                                                           new AsymKeyHolder(privateKey),
-                                                           signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -350,10 +351,11 @@ public class BaseGuiServlet extends HttpServlet {
                     JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
                     jwsString = 
-                            JOSESupport.createJwsSignature(null, 
+                            JOSESupport.createJwsSignature(new JwsEncoder(
+                                                               new AsymKeyHolder(
+                                                                       privateKey, 
+                                                                       signatureAlgorithm)), 
                                                            JWS_Payload,
-                                                           new AsymKeyHolder(privateKey),
-                                                           signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -375,10 +377,11 @@ public class BaseGuiServlet extends HttpServlet {
                     JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
                     jwsString = 
-                            JOSESupport.createJwsSignature(null, 
+                            JOSESupport.createJwsSignature(new JwsEncoder(
+                                                               new AsymKeyHolder(
+                                                                       privateKey,
+                                                                       signatureAlgorithm)), 
                                                            JWS_Payload,
-                                                           new AsymKeyHolder(privateKey),
-                                                           signatureAlgorithm,
                                                            true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -393,11 +396,11 @@ public class BaseGuiServlet extends HttpServlet {
                                                                  signatureAlgorithm);
                     sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
                             sampleUriRequestUri2BeSigned,
-                            JOSESupport.createJwsSignature(
-                                    null, 
+                            JOSESupport.createJwsSignature(new JwsEncoder(
+                                                               new AsymKeyHolder(
+                                                                       privateKey,
+                                                                       signatureAlgorithm)),
                                     secinf.serializeToBytes(JSONOutputFormats.NORMALIZED),
-                                    new AsymKeyHolder(privateKey),
-                                    signatureAlgorithm,
                                     false));
 
                     sampleJson_JS = HTML.javaScript(TEST_MESSAGE);

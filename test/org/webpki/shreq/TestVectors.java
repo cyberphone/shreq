@@ -36,6 +36,7 @@ import org.webpki.json.JSONParser;
 
 import org.webpki.jose.AsymKeyHolder;
 import org.webpki.jose.JOSESupport;
+import org.webpki.jose.JwsEncoder;
 import org.webpki.jose.SymKeyHolder;
 
 import org.webpki.util.Base64;
@@ -64,13 +65,13 @@ public class TestVectors {
         GregorianCalendar optionalTimeStamp;
         LinkedHashMap<String,String> optionalHeaders;
         
-        JOSESupport.CoreKeyHolder keyHolder;
+        JOSESupport.KeyHolder keyHolder;
         String keyInRFCText;
         String keyRFCDescription;
         String signatureAlgorithmId;
         JSONObjectWriter secinf;
         byte[] JWS_Payload;
-        JSONObjectWriter JWS_Protected_Header;
+        JwsEncoder jwsEncoder;
         String signedUri;
 
         Test(String uri,
@@ -104,7 +105,8 @@ public class TestVectors {
                 String keyInHex = utf8(readKey(keyAlgName + "bitkey.hex"));
                 keyInRFCText = keyInHex;
                 keyRFCDescription = "Symmetric signature validation key, here in hexadecimal notation:";
-                keyHolder = new SymKeyHolder(DebugFormatter.getByteArrayFromHex(keyInHex));
+                keyHolder = new SymKeyHolder(DebugFormatter.getByteArrayFromHex(keyInHex),
+                                             (MACAlgorithms) signatureAlgorithm);
             } else {
                 KeyPair keyPair = PEMDecoder.getKeyPair(readKey(keyAlgName + "privatekey.pem"));
                 keyRFCDescription = "Public signature validation key, here in PEM format:";
@@ -112,11 +114,12 @@ public class TestVectors {
                     "-----BEGIN PUBLIC KEY-----\n" +
                     new Base64(RFC_ARTWORK_LINE_MAX).getBase64StringFromBinary(keyPair.getPublic().getEncoded()) +
                     "\n-----END PUBLIC KEY-----";
-                keyHolder = new AsymKeyHolder(keyPair.getPrivate());
+                keyHolder = new AsymKeyHolder(keyPair.getPrivate(),
+                                              (AsymSignatureAlgorithms) signatureAlgorithm);
             }
 
-            JWS_Protected_Header = JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), 
-                                                                     signatureAlgorithm);
+            jwsEncoder = new JwsEncoder(keyHolder);
+
             secinf = new JSONObjectWriter();
             if (optionalJSONBody == null) {
                 uriRequest();
@@ -199,10 +202,8 @@ public class TestVectors {
             JSONObjectWriter writer = new JSONObjectWriter(message);
             writer.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
             JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-            String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
+            String jwsString = JOSESupport.createJwsSignature(jwsEncoder, 
                                                               JWS_Payload,
-                                                              keyHolder,
-                                                              signatureAlgorithm,
                                                               true);
             // Create the completed object which now is in "writer"
             secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -215,11 +216,10 @@ public class TestVectors {
                                                          optionalTimeStamp,
                                                          optionalHeaders,
                                                          signatureAlgorithm);
-            String jwsString = JOSESupport.createJwsSignature(JWS_Protected_Header, 
-                    secinf.serializeToBytes(JSONOutputFormats.NORMALIZED),
-                                                         keyHolder,
-                                                         signatureAlgorithm,
-                                                         false);
+            String jwsString = JOSESupport.createJwsSignature(jwsEncoder, 
+                                                              secinf.serializeToBytes(
+                                                                  JSONOutputFormats.NORMALIZED),
+                                                              false);
             signedUri = SHREQSupport.addJwsToTargetUri(uri, jwsString);
         }
     }

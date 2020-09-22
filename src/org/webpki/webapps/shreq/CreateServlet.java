@@ -37,6 +37,7 @@ import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.jose.AsymKeyHolder;
 import org.webpki.jose.JOSESupport;
+import org.webpki.jose.JwsEncoder;
 import org.webpki.jose.SymKeyHolder;
 
 import org.webpki.json.JSONObjectReader;
@@ -325,23 +326,16 @@ public class CreateServlet extends BaseGuiServlet {
                                                                             :
                     AsymSignatureAlgorithms.getAlgorithmFromId(algorithmParam, 
                                                                AlgorithmPreferences.JOSE);
-            // Create the minimal JWS header
-            JSONObjectWriter jwsProtectedHeader =
-                    JOSESupport.setSignatureAlgorithm(new JSONObjectWriter(), signatureAlgorithm);
 
-            // Add any optional (by the user specified) arguments
-            for (String key : additionalHeaderData.getProperties()) {
-                jwsProtectedHeader.copyElement(key, key, additionalHeaderData);
-            }
-            
             // Get the signature key
-            JOSESupport.CoreKeyHolder keyHolder;
+            JOSESupport.KeyHolder keyHolder;
             String validationKey;
             
             // Symmetric or asymmetric?
             if (signatureAlgorithm.isSymmetric()) {
                 validationKey = getParameter(request, TXT_SECRET_KEY);
-                keyHolder = new SymKeyHolder(DebugFormatter.getByteArrayFromHex(validationKey));
+                keyHolder = new SymKeyHolder(DebugFormatter.getByteArrayFromHex(validationKey),
+                                             (MACAlgorithms) signatureAlgorithm);
             } else {
                 // To simplify UI we require PKCS #8 with the public key embedded
                 // but we also support JWK which also has the public key
@@ -354,17 +348,25 @@ public class CreateServlet extends BaseGuiServlet {
                 }
                 privateKeyBlob = null;  // Nullify it after use
                 validationKey = getPEMFromPublicKey(keyPair.getPublic());
+                keyHolder = new AsymKeyHolder(keyPair.getPrivate(),
+                                              (AsymSignatureAlgorithms) signatureAlgorithm);
 
                 // Add other JWS header data that the demo program fixes 
                 if (certOption) {
-                    JOSESupport.setCertificatePath(jwsProtectedHeader,
+                    ((AsymKeyHolder)keyHolder).setCertificatePath(
                             PEMDecoder.getCertificatePath(getBinaryParameter(request,
                                                                              TXT_CERT_PATH)));
                 } else if (keyInlining) {
-                    JOSESupport.setPublicKey(jwsProtectedHeader, keyPair.getPublic());
+                    ((AsymKeyHolder)keyHolder).setPublicKey(keyPair.getPublic());
                 }
-                keyHolder = new AsymKeyHolder(keyPair.getPrivate());
             }
+
+            // Begin creating a signature
+            JwsEncoder jwsEncoder = new JwsEncoder(keyHolder);
+
+            // Add any optional (by the user specified) arguments
+            jwsEncoder.addHeaderItems(additionalHeaderData);
+ 
             String signedJSONRequest;
             if (jsonRequest) {
                 // Creating JSON data to be signed
@@ -386,10 +388,8 @@ public class CreateServlet extends BaseGuiServlet {
                 byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
                 // Sign it using the provided algorithm and key
-                String jwsString = JOSESupport.createJwsSignature(jwsProtectedHeader, 
+                String jwsString = JOSESupport.createJwsSignature(jwsEncoder, 
                                                                   JWS_Payload,
-                                                                  keyHolder,
-                                                                  signatureAlgorithm,
                                                                   true);
                 keyHolder = null;  // Nullify it after use
         
@@ -422,10 +422,8 @@ public class CreateServlet extends BaseGuiServlet {
                 targetUri = SHREQSupport.addJwsToTargetUri(
                         targetUri,
                         JOSESupport.createJwsSignature(
-                                jwsProtectedHeader, 
+                                jwsEncoder,
                                 writer.serializeToBytes(JSONOutputFormats.NORMALIZED),
-                                keyHolder,
-                                signatureAlgorithm,
                                 false));
             }
 

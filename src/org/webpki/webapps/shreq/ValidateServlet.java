@@ -186,10 +186,10 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
     }
 
     @Override
-    public JOSESupport.CoreSignatureValidator getSignatureValidator(ValidationCore validationCore,
-                                                                    SignatureAlgorithms signatureAlgorithm,
-                                                                    PublicKey publicKey, 
-                                                                    String keyId)
+    public JOSESupport.SignatureValidator getSignatureValidator(ValidationCore validationCore,
+                                                                SignatureAlgorithms signatureAlgorithm,
+                                                                PublicKey publicKey, 
+                                                                String keyId)
     throws IOException, GeneralSecurityException {
         if (signatureAlgorithm.isSymmetric()) {
             return new HmacValidator((byte[])validationCore.getCookie());

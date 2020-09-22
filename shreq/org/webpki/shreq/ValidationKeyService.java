@@ -27,7 +27,7 @@ import org.webpki.jose.JOSESupport;
 
 public interface ValidationKeyService {
 
-    public JOSESupport.CoreSignatureValidator 
+    public JOSESupport.SignatureValidator 
         getSignatureValidator(ValidationCore valiationCode,
                               SignatureAlgorithms signatureAlgorithm,
                               PublicKey publicKey, // Also filled for X5C

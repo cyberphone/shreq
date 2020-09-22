@@ -223,10 +223,10 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
     }
 
     @Override
-    public JOSESupport.CoreSignatureValidator getSignatureValidator(ValidationCore validationCore,
-                                                                    SignatureAlgorithms signatureAlgorithm,
-                                                                    PublicKey publicKey, 
-                                                                    String keyId)
+    public JOSESupport.SignatureValidator getSignatureValidator(ValidationCore validationCore,
+                                                                SignatureAlgorithms signatureAlgorithm,
+                                                                PublicKey publicKey, 
+                                                                String keyId)
     throws IOException, GeneralSecurityException {
         if (signatureAlgorithm.isSymmetric()) {
             if (externallyConfigured()) {

@@ -290,26 +290,9 @@ public abstract class ValidationCore {
                                                                AlgorithmPreferences.JOSE);
         }        
         
-        keyId = jwsProtectedHeader.hasProperty(JOSESupport.KID_JSON) ?
-                JOSESupport.getKeyId(jwsProtectedHeader) : null;
-        publicKey = jwsProtectedHeader.hasProperty(JOSESupport.JWK_JSON) ?
-                JOSESupport.getPublicKey(jwsProtectedHeader) : null;
-        certificatePath = jwsProtectedHeader.hasProperty(JOSESupport.X5C_JSON) ?
-                        JOSESupport.getCertificatePath(jwsProtectedHeader) : null;
-        if (publicKey != null) {
-            if (signatureAlgorithm.isSymmetric()) {
-                throw new GeneralSecurityException("Public key and HMAC algorithm");
-            }
-            if (certificatePath != null) {
-                throw new GeneralSecurityException("Mixing \"" + 
-                                                   JOSESupport.JWK_JSON +
-                                                   "\" and \"" +
-                                                   JOSESupport.X5C_JSON +
-                                                   "\"");
-            }
-        }
-
-        
+        keyId = jwsDecoder.getOptionalKeyId();
+        publicKey = jwsDecoder.getOptionalPublicKey();
+        certificatePath = jwsDecoder.getOptionalCertificatePath();
     }
 
 
