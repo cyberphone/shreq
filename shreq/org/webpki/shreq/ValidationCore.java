@@ -35,8 +35,10 @@ import org.webpki.crypto.HashAlgorithms;
 import org.webpki.crypto.MACAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.JOSESupport;
-import org.webpki.jose.JwsDecoder;
+import org.webpki.jose.JoseKeyWords;
+
+import org.webpki.jose.jws.JwsDecoder;
+
 import org.webpki.json.JSONArrayReader;
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONParser;
@@ -276,8 +278,8 @@ public abstract class ValidationCore {
         jwsSignatureB64U = jwsString.substring(lastDot + 1);
 
         // Start decoding the JWS header.  Algorithm is the minimum
-        String algorithmParam = jwsProtectedHeader.getString(JOSESupport.ALG_JSON);
-        if (algorithmParam.equals(JOSESupport.EdDSA)) {
+        String algorithmParam = jwsProtectedHeader.getString(JoseKeyWords.ALG_JSON);
+        if (algorithmParam.equals(JoseKeyWords.EdDSA)) {
             signatureAlgorithm = jwsSignatureB64U.length() < 100 ? 
                     AsymSignatureAlgorithms.ED25519 : AsymSignatureAlgorithms.ED448;
         } else if (algorithmParam.startsWith("HS")) {
@@ -313,14 +315,13 @@ public abstract class ValidationCore {
         // JWS_Protected_Header.checkForUnread();
         
         // 6.9:2-4
-        JOSESupport.validateJwsSignature(jwsDecoder, 
-                                         jwsPayload,
-                                         validationKeyService.getSignatureValidator(
-                                             this,
-                                             signatureAlgorithm, 
-                                             certificatePath == null ? 
-                                                           publicKey : 
-                                                           certificatePath[0].getPublicKey(),
-                                             keyId));
+        validationKeyService.getSignatureValidator(
+                this,
+                signatureAlgorithm, 
+                certificatePath == null ? 
+                              publicKey : 
+                              certificatePath[0].getPublicKey(),
+                keyId).validateSignature(jwsDecoder, 
+                                         jwsPayload);
     }
 }

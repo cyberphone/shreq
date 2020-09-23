@@ -34,10 +34,9 @@ import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
 
-import org.webpki.jose.AsymKeyHolder;
-import org.webpki.jose.JOSESupport;
-import org.webpki.jose.JwsEncoder;
-import org.webpki.jose.SymKeyHolder;
+import org.webpki.jose.jws.JwsAsymKeySigner;
+import org.webpki.jose.jws.JwsHmacSigner;
+import org.webpki.jose.jws.JwsSigner;
 
 import org.webpki.util.Base64;
 import org.webpki.util.DebugFormatter;
@@ -65,13 +64,12 @@ public class TestVectors {
         GregorianCalendar optionalTimeStamp;
         LinkedHashMap<String,String> optionalHeaders;
         
-        JOSESupport.KeyHolder keyHolder;
+        JwsSigner jwsSigner;
         String keyInRFCText;
         String keyRFCDescription;
         String signatureAlgorithmId;
         JSONObjectWriter secinf;
         byte[] JWS_Payload;
-        JwsEncoder jwsEncoder;
         String signedUri;
 
         Test(String uri,
@@ -105,7 +103,7 @@ public class TestVectors {
                 String keyInHex = utf8(readKey(keyAlgName + "bitkey.hex"));
                 keyInRFCText = keyInHex;
                 keyRFCDescription = "Symmetric signature validation key, here in hexadecimal notation:";
-                keyHolder = new SymKeyHolder(DebugFormatter.getByteArrayFromHex(keyInHex),
+                jwsSigner = new JwsHmacSigner(DebugFormatter.getByteArrayFromHex(keyInHex),
                                              (MACAlgorithms) signatureAlgorithm);
             } else {
                 KeyPair keyPair = PEMDecoder.getKeyPair(readKey(keyAlgName + "privatekey.pem"));
@@ -114,11 +112,9 @@ public class TestVectors {
                     "-----BEGIN PUBLIC KEY-----\n" +
                     new Base64(RFC_ARTWORK_LINE_MAX).getBase64StringFromBinary(keyPair.getPublic().getEncoded()) +
                     "\n-----END PUBLIC KEY-----";
-                keyHolder = new AsymKeyHolder(keyPair.getPrivate(),
+                jwsSigner = new JwsAsymKeySigner(keyPair.getPrivate(),
                                               (AsymSignatureAlgorithms) signatureAlgorithm);
             }
-
-            jwsEncoder = new JwsEncoder(keyHolder);
 
             secinf = new JSONObjectWriter();
             if (optionalJSONBody == null) {
@@ -202,9 +198,7 @@ public class TestVectors {
             JSONObjectWriter writer = new JSONObjectWriter(message);
             writer.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
             JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-            String jwsString = JOSESupport.createJwsSignature(jwsEncoder, 
-                                                              JWS_Payload,
-                                                              true);
+            String jwsString = jwsSigner.createSignature(JWS_Payload, true);
             // Create the completed object which now is in "writer"
             secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
             optionalJSONBody = writer.serializeToString(JSONOutputFormats.PRETTY_PRINT);
@@ -216,10 +210,8 @@ public class TestVectors {
                                                          optionalTimeStamp,
                                                          optionalHeaders,
                                                          signatureAlgorithm);
-            String jwsString = JOSESupport.createJwsSignature(jwsEncoder, 
-                                                              secinf.serializeToBytes(
-                                                                  JSONOutputFormats.NORMALIZED),
-                                                              false);
+            String jwsString = jwsSigner.createSignature(
+                    secinf.serializeToBytes(JSONOutputFormats.NORMALIZED), false);
             signedUri = SHREQSupport.addJwsToTargetUri(uri, jwsString);
         }
     }

@@ -39,9 +39,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.AsymSignatureValidator;
-import org.webpki.jose.HmacValidator;
-import org.webpki.jose.JOSESupport;
+import org.webpki.jose.jws.JwsAsymSignatureValidator;
+import org.webpki.jose.jws.JwsHmacValidator;
+import org.webpki.jose.jws.JwsValidator;
 
 import org.webpki.json.JSONParser;
 
@@ -223,10 +223,10 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
     }
 
     @Override
-    public JOSESupport.SignatureValidator getSignatureValidator(ValidationCore validationCore,
-                                                                SignatureAlgorithms signatureAlgorithm,
-                                                                PublicKey publicKey, 
-                                                                String keyId)
+    public JwsValidator getSignatureValidator(ValidationCore validationCore,
+                                              SignatureAlgorithms signatureAlgorithm,
+                                              PublicKey publicKey, 
+                                              String keyId)
     throws IOException, GeneralSecurityException {
         if (signatureAlgorithm.isSymmetric()) {
             if (externallyConfigured()) {
@@ -235,7 +235,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             byte[] secretKey = SHREQService.predefinedSecretKeys
                     .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE));
             validationCore.setCookie(DebugFormatter.getHexString(secretKey));
-            return new HmacValidator(secretKey);
+            return new JwsHmacValidator(secretKey);
         }
         PublicKey validationKey;
         if (externallyConfigured()) {
@@ -256,6 +256,6 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             }
         }
         validationCore.setCookie(BaseGuiServlet.getPEMFromPublicKey(validationKey));
-        return new AsymSignatureValidator(validationKey);
+        return new JwsAsymSignatureValidator(validationKey);
     }
 }

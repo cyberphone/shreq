@@ -23,14 +23,14 @@ import java.security.PublicKey;
 
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.JOSESupport;
+import org.webpki.jose.jws.JwsValidator;
 
 public interface ValidationKeyService {
 
-    public JOSESupport.SignatureValidator 
-        getSignatureValidator(ValidationCore valiationCode,
-                              SignatureAlgorithms signatureAlgorithm,
-                              PublicKey publicKey, // Also filled for X5C
-                              String keyId) throws IOException, GeneralSecurityException;
+    public JwsValidator getSignatureValidator(ValidationCore valiationCode,
+                                              SignatureAlgorithms signatureAlgorithm,
+                                              PublicKey publicKey, // Also filled for X5C
+                                              String keyId)  throws IOException, 
+                                                                    GeneralSecurityException;
 
 }
