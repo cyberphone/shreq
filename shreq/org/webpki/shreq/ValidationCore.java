@@ -315,13 +315,22 @@ public abstract class ValidationCore {
         // JWS_Protected_Header.checkForUnread();
         
         // 6.9:2-4
-        validationKeyService.getSignatureValidator(
-                this,
-                signatureAlgorithm, 
-                certificatePath == null ? 
-                              publicKey : 
-                              certificatePath[0].getPublicKey(),
-                keyId).validateSignature(jwsDecoder, 
-                                         jwsPayload);
+        if (jwsPayload == null) {
+            validationKeyService.getSignatureValidator(
+                    this,
+                    signatureAlgorithm, 
+                    certificatePath == null ? 
+                                  publicKey : 
+                                  certificatePath[0].getPublicKey(),
+                    keyId).validateSignature(jwsDecoder);
+        } else {
+            validationKeyService.getSignatureValidator(
+                    this,
+                    signatureAlgorithm, 
+                    certificatePath == null ? 
+                                  publicKey : 
+                                  certificatePath[0].getPublicKey(),
+                    keyId).validateDetachedSignature(jwsDecoder, jwsPayload);
+        }
     }
 }
