@@ -82,6 +82,8 @@ public abstract class ValidationCore {
     
     JwsDecoder jwsDecoder;
     
+    private boolean detached;
+    
     private Object cookie;
 
     protected ValidationCore(String targetUri,
@@ -254,6 +256,7 @@ public abstract class ValidationCore {
     // 6.6
     protected void decodeJwsString(String jwsString, boolean detached) throws IOException,
                                                                                GeneralSecurityException {
+        this.detached = detached;
         jwsDecoder = new JwsDecoder(jwsString);
         // :1
         int endOfHeader = jwsString.indexOf('.');
@@ -315,15 +318,7 @@ public abstract class ValidationCore {
         // JWS_Protected_Header.checkForUnread();
         
         // 6.9:2-4
-        if (jwsPayload == null) {
-            validationKeyService.getSignatureValidator(
-                    this,
-                    signatureAlgorithm, 
-                    certificatePath == null ? 
-                                  publicKey : 
-                                  certificatePath[0].getPublicKey(),
-                    keyId).validateSignature(jwsDecoder);
-        } else {
+        if (detached) {
             validationKeyService.getSignatureValidator(
                     this,
                     signatureAlgorithm, 
@@ -331,6 +326,14 @@ public abstract class ValidationCore {
                                   publicKey : 
                                   certificatePath[0].getPublicKey(),
                     keyId).validateDetachedSignature(jwsDecoder, jwsPayload);
+        } else {
+            validationKeyService.getSignatureValidator(
+                    this,
+                    signatureAlgorithm, 
+                    certificatePath == null ? 
+                                  publicKey : 
+                                  certificatePath[0].getPublicKey(),
+                    keyId).validateSignature(jwsDecoder);
         }
     }
 }
