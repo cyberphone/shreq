@@ -325,7 +325,7 @@ public abstract class ValidationCore {
                     certificatePath == null ? 
                                   publicKey : 
                                   certificatePath[0].getPublicKey(),
-                    keyId).validateDetachedSignature(jwsDecoder, jwsPayload);
+                    keyId).validate(jwsDecoder, jwsPayload);
         } else {
             validationKeyService.getSignatureValidator(
                     this,
@@ -333,7 +333,7 @@ public abstract class ValidationCore {
                     certificatePath == null ? 
                                   publicKey : 
                                   certificatePath[0].getPublicKey(),
-                    keyId).validateSignature(jwsDecoder);
+                    keyId).validate(jwsDecoder);
         }
     }
 }

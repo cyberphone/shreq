@@ -327,7 +327,7 @@ public class BaseGuiServlet extends HttpServlet {
                     byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
                             
                     String jwsString = new JwsAsymKeySigner(privateKey, signatureAlgorithm)
-                                           .createSignature(JWS_Payload, true);
+                                           .sign(JWS_Payload, true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
                     
@@ -345,7 +345,7 @@ public class BaseGuiServlet extends HttpServlet {
                     JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
                     jwsString = new JwsAsymKeySigner(privateKey, signatureAlgorithm)
-                                    .createSignature(JWS_Payload, true);
+                                    .sign(JWS_Payload, true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
 
@@ -366,7 +366,7 @@ public class BaseGuiServlet extends HttpServlet {
                     JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
                     jwsString = new JwsAsymKeySigner(privateKey, signatureAlgorithm)
-                                    .createSignature(JWS_Payload, true);
+                                    .sign(JWS_Payload, true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
 
@@ -381,8 +381,8 @@ public class BaseGuiServlet extends HttpServlet {
                     sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
                             sampleUriRequestUri2BeSigned,
                             new JwsAsymKeySigner(privateKey, signatureAlgorithm)
-                                .createSignature(secinf.serializeToBytes(JSONOutputFormats.NORMALIZED),
-                                                 false));
+                                .sign(secinf.serializeToBytes(JSONOutputFormats.NORMALIZED), 
+                                      false));
 
                     sampleJson_JS = HTML.javaScript(TEST_MESSAGE);
 

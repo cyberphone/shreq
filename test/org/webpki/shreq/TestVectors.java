@@ -198,7 +198,7 @@ public class TestVectors {
             JSONObjectWriter writer = new JSONObjectWriter(message);
             writer.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
             JWS_Payload = writer.serializeToBytes(JSONOutputFormats.CANONICALIZED);
-            String jwsString = jwsSigner.createSignature(JWS_Payload, true);
+            String jwsString = jwsSigner.sign(JWS_Payload, true);
             // Create the completed object which now is in "writer"
             secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
             optionalJSONBody = writer.serializeToString(JSONOutputFormats.PRETTY_PRINT);
@@ -210,7 +210,7 @@ public class TestVectors {
                                                          optionalTimeStamp,
                                                          optionalHeaders,
                                                          signatureAlgorithm);
-            String jwsString = jwsSigner.createSignature(
+            String jwsString = jwsSigner.sign(
                     secinf.serializeToBytes(JSONOutputFormats.NORMALIZED), false);
             signedUri = SHREQSupport.addJwsToTargetUri(uri, jwsString);
         }

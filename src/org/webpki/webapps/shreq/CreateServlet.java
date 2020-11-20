@@ -384,7 +384,7 @@ public class CreateServlet extends BaseGuiServlet {
                 byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
         
                 // Sign it using the provided algorithm and key
-                String jwsString = jwsSigner.createSignature(JWS_Payload, true);
+                String jwsString = jwsSigner.sign(JWS_Payload, true);
                 jwsSigner = null;  // Nullify it after use
         
                 // Create the completed object which now is in "writer"
@@ -415,9 +415,8 @@ public class CreateServlet extends BaseGuiServlet {
                                 signatureAlgorithm);
                 targetUri = SHREQSupport.addJwsToTargetUri(
                         targetUri,
-                        jwsSigner.createSignature(
-                                writer.serializeToBytes(JSONOutputFormats.NORMALIZED),
-                                false));
+                        jwsSigner.sign(writer.serializeToBytes(JSONOutputFormats.NORMALIZED),
+                                       false));
             }
 
             // We terminate by validating the signature as well
