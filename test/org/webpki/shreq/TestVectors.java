@@ -26,7 +26,7 @@ import java.util.LinkedHashMap;
 
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
-import org.webpki.crypto.MACAlgorithms;
+import org.webpki.crypto.HmacAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.json.JSONObjectReader;
@@ -104,7 +104,7 @@ public class TestVectors {
                 keyInRFCText = keyInHex;
                 keyRFCDescription = "Symmetric signature validation key, here in hexadecimal notation:";
                 jwsSigner = new JwsHmacSigner(DebugFormatter.getByteArrayFromHex(keyInHex),
-                                             (MACAlgorithms) signatureAlgorithm);
+                                             (HmacAlgorithms) signatureAlgorithm);
             } else {
                 KeyPair keyPair = PEMDecoder.getKeyPair(readKey(keyAlgName + "privatekey.pem"));
                 keyRFCDescription = "Public signature validation key, here in PEM format:";
@@ -242,7 +242,7 @@ public class TestVectors {
                     "https://example.com/users/456",
                     "GET",
                     null,
-                    MACAlgorithms.HMAC_SHA256,
+                    HmacAlgorithms.HMAC_SHA256,
                     null,
                     "a256",
                     frozen,

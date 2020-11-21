@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.HashAlgorithms;
-import org.webpki.crypto.MACAlgorithms;
+import org.webpki.crypto.HmacAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.jose.JoseKeyWords;
@@ -287,7 +287,7 @@ public abstract class ValidationCore {
                     AsymSignatureAlgorithms.ED25519 : AsymSignatureAlgorithms.ED448;
         } else if (algorithmParam.startsWith("HS")) {
             signatureAlgorithm = 
-                    MACAlgorithms.getAlgorithmFromId(algorithmParam,
+                    HmacAlgorithms.getAlgorithmFromId(algorithmParam,
                                                      AlgorithmPreferences.JOSE);
         } else {
             signatureAlgorithm = 

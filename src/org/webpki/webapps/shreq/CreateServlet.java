@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
-import org.webpki.crypto.MACAlgorithms;
+import org.webpki.crypto.HmacAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.jose.jws.JwsAsymKeySigner;
@@ -92,9 +92,9 @@ public class CreateServlet extends BaseGuiServlet {
             .append(
                "<div style=\"display:flex;align-items:center\">")
             .append(new SelectAlg(defaultAlgorithm)
-                 .add(MACAlgorithms.HMAC_SHA256)
-                 .add(MACAlgorithms.HMAC_SHA384)
-                 .add(MACAlgorithms.HMAC_SHA512)
+                 .add(HmacAlgorithms.HMAC_SHA256)
+                 .add(HmacAlgorithms.HMAC_SHA384)
+                 .add(HmacAlgorithms.HMAC_SHA512)
                  .add(AsymSignatureAlgorithms.ECDSA_SHA256)
                  .add(AsymSignatureAlgorithms.ECDSA_SHA384)
                  .add(AsymSignatureAlgorithms.ECDSA_SHA512)
@@ -320,7 +320,7 @@ public class CreateServlet extends BaseGuiServlet {
             // Get wanted signature algorithm
             String algorithmParam = getParameter(request, PRM_JWS_ALGORITHM);
             SignatureAlgorithms signatureAlgorithm = algorithmParam.startsWith("HS") ?
-                    MACAlgorithms.getAlgorithmFromId(algorithmParam, 
+                    HmacAlgorithms.getAlgorithmFromId(algorithmParam, 
                                                      AlgorithmPreferences.JOSE)
                                                                             :
                     AsymSignatureAlgorithms.getAlgorithmFromId(algorithmParam, 
@@ -334,7 +334,7 @@ public class CreateServlet extends BaseGuiServlet {
             if (signatureAlgorithm.isSymmetric()) {
                 validationKey = getParameter(request, TXT_SECRET_KEY);
                 jwsSigner = new JwsHmacSigner(DebugFormatter.getByteArrayFromHex(validationKey),
-                                             (MACAlgorithms) signatureAlgorithm);
+                                             (HmacAlgorithms) signatureAlgorithm);
             } else {
                 // To simplify UI we require PKCS #8 with the public key embedded
                 // but we also support JWK which also has the public key

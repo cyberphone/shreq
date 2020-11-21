@@ -34,7 +34,7 @@ import javax.servlet.ServletContextListener;
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.KeyStoreVerifier;
-import org.webpki.crypto.MACAlgorithms;
+import org.webpki.crypto.HmacAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
 import org.webpki.shreq.SHREQSupport;
@@ -173,9 +173,9 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
                           .addKey(AsymSignatureAlgorithms.RSA_SHA384,   null)
                           .addKey(AsymSignatureAlgorithms.RSA_SHA512,   null).toString() +
                     new KeyDeclaration(KeyDeclaration.SECRET_KEYS, "bitkey.hex")
-                          .addKey(MACAlgorithms.HMAC_SHA256,            "a256")
-                          .addKey(MACAlgorithms.HMAC_SHA384,            "a384")
-                          .addKey(MACAlgorithms.HMAC_SHA512,            "a512").toString();
+                          .addKey(HmacAlgorithms.HMAC_SHA256,           "a256")
+                          .addKey(HmacAlgorithms.HMAC_SHA384,           "a384")
+                          .addKey(HmacAlgorithms.HMAC_SHA512,           "a512").toString();
             
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(null, null);
