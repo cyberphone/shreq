@@ -135,14 +135,12 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
         String targetUri = getUrlFromRequest(request);
 
         // Collect HTTP Headers
-        @SuppressWarnings("unchecked")
         Enumeration<String> headerNames = request.getHeaderNames();
         
         try {
             LinkedHashMap<String, String> headerMap = new LinkedHashMap<String, String>();
             while (headerNames.hasMoreElements()) {
                 String headerName = headerNames.nextElement().toLowerCase();
-                @SuppressWarnings("unchecked")
                 Enumeration<String> headerValues = request.getHeaders(headerName);
                 boolean next = false;
                 do {
