@@ -35,9 +35,9 @@ import org.webpki.crypto.HashAlgorithms;
 import org.webpki.crypto.HmacAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.JoseKeyWords;
+import org.webpki.jose.JOSEKeyWords;
 
-import org.webpki.jose.jws.JwsDecoder;
+import org.webpki.jose.jws.JWSDecoder;
 
 import org.webpki.json.JSONArrayReader;
 import org.webpki.json.JSONObjectReader;
@@ -80,7 +80,7 @@ public abstract class ValidationCore {
     
     JSONObjectReader secinf;
     
-    JwsDecoder jwsDecoder;
+    JWSDecoder jwsDecoder;
     
     private boolean detached;
     
@@ -257,7 +257,7 @@ public abstract class ValidationCore {
     protected void decodeJwsString(String jwsString, boolean detached) throws IOException,
                                                                                GeneralSecurityException {
         this.detached = detached;
-        jwsDecoder = new JwsDecoder(jwsString);
+        jwsDecoder = new JWSDecoder(jwsString);
         // :1
         int endOfHeader = jwsString.indexOf('.');
         int lastDot = jwsString.lastIndexOf('.');
@@ -281,8 +281,8 @@ public abstract class ValidationCore {
         jwsSignatureB64U = jwsString.substring(lastDot + 1);
 
         // Start decoding the JWS header.  Algorithm is the minimum
-        String algorithmParam = jwsProtectedHeader.getString(JoseKeyWords.ALG_JSON);
-        if (algorithmParam.equals(JoseKeyWords.EdDSA)) {
+        String algorithmParam = jwsProtectedHeader.getString(JOSEKeyWords.ALG_JSON);
+        if (algorithmParam.equals(JOSEKeyWords.EdDSA)) {
             signatureAlgorithm = jwsSignatureB64U.length() < 100 ? 
                     AsymSignatureAlgorithms.ED25519 : AsymSignatureAlgorithms.ED448;
         } else if (algorithmParam.startsWith("HS")) {

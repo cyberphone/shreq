@@ -23,11 +23,11 @@ import java.security.PublicKey;
 
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.jws.JwsValidator;
+import org.webpki.jose.jws.JWSValidator;
 
 public interface ValidationKeyService {
 
-    public JwsValidator getSignatureValidator(ValidationCore valiationCode,
+    public JWSValidator getSignatureValidator(ValidationCore valiationCode,
                                               SignatureAlgorithms signatureAlgorithm,
                                               PublicKey publicKey, // Also filled for X5C
                                               String keyId)  throws IOException, 

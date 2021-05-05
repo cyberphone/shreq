@@ -34,9 +34,9 @@ import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
 
-import org.webpki.jose.jws.JwsAsymKeySigner;
-import org.webpki.jose.jws.JwsHmacSigner;
-import org.webpki.jose.jws.JwsSigner;
+import org.webpki.jose.jws.JWSAsymKeySigner;
+import org.webpki.jose.jws.JWSHmacSigner;
+import org.webpki.jose.jws.JWSSigner;
 
 import org.webpki.util.Base64;
 import org.webpki.util.DebugFormatter;
@@ -64,7 +64,7 @@ public class TestVectors {
         GregorianCalendar optionalTimeStamp;
         LinkedHashMap<String,String> optionalHeaders;
         
-        JwsSigner jwsSigner;
+        JWSSigner jwsSigner;
         String keyInRFCText;
         String keyRFCDescription;
         String signatureAlgorithmId;
@@ -103,7 +103,7 @@ public class TestVectors {
                 String keyInHex = utf8(readKey(keyAlgName + "bitkey.hex"));
                 keyInRFCText = keyInHex;
                 keyRFCDescription = "Symmetric signature validation key, here in hexadecimal notation:";
-                jwsSigner = new JwsHmacSigner(DebugFormatter.getByteArrayFromHex(keyInHex),
+                jwsSigner = new JWSHmacSigner(DebugFormatter.getByteArrayFromHex(keyInHex),
                                              (HmacAlgorithms) signatureAlgorithm);
             } else {
                 KeyPair keyPair = PEMDecoder.getKeyPair(readKey(keyAlgName + "privatekey.pem"));
@@ -112,7 +112,7 @@ public class TestVectors {
                     "-----BEGIN PUBLIC KEY-----\n" +
                     new Base64(RFC_ARTWORK_LINE_MAX).getBase64StringFromBinary(keyPair.getPublic().getEncoded()) +
                     "\n-----END PUBLIC KEY-----";
-                jwsSigner = new JwsAsymKeySigner(keyPair.getPrivate(),
+                jwsSigner = new JWSAsymKeySigner(keyPair.getPrivate(),
                                               (AsymSignatureAlgorithms) signatureAlgorithm);
             }
 

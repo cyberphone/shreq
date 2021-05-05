@@ -39,9 +39,9 @@ import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONOutputFormats;
 import org.webpki.json.JSONParser;
 
-import org.webpki.jose.jws.JwsAsymSignatureValidator;
-import org.webpki.jose.jws.JwsHmacValidator;
-import org.webpki.jose.jws.JwsValidator;
+import org.webpki.jose.jws.JWSAsymSignatureValidator;
+import org.webpki.jose.jws.JWSHmacValidator;
+import org.webpki.jose.jws.JWSValidator;
 
 import org.webpki.shreq.JSONRequestValidation;
 import org.webpki.shreq.URIRequestValidation;
@@ -186,19 +186,19 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
     }
 
     @Override
-    public JwsValidator getSignatureValidator(ValidationCore validationCore,
+    public JWSValidator getSignatureValidator(ValidationCore validationCore,
                                               SignatureAlgorithms signatureAlgorithm,
                                               PublicKey publicKey, 
                                               String keyId)
     throws IOException, GeneralSecurityException {
         if (signatureAlgorithm.isSymmetric()) {
-            return new JwsHmacValidator((byte[])validationCore.getCookie());
+            return new JWSHmacValidator((byte[])validationCore.getCookie());
         }
         PublicKey validationKey = (PublicKey)validationCore.getCookie();
         if (publicKey != null && !publicKey.equals(validationKey)) {
             throw new GeneralSecurityException("In-lined public key differs from predefined public key");
         }
-        return new JwsAsymSignatureValidator(validationKey);
+        return new JWSAsymSignatureValidator(validationKey);
     }
 
 

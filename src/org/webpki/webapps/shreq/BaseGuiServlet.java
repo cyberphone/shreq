@@ -36,7 +36,7 @@ import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.jws.JwsAsymKeySigner;
+import org.webpki.jose.jws.JWSAsymKeySigner;
 
 import org.webpki.json.JSONObjectWriter;
 import org.webpki.json.JSONOutputFormats;
@@ -326,7 +326,7 @@ public class BaseGuiServlet extends HttpServlet {
                     message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
                     byte[] JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
                             
-                    String jwsString = new JwsAsymKeySigner(privateKey, signatureAlgorithm)
+                    String jwsString = new JWSAsymKeySigner(privateKey, signatureAlgorithm)
                                            .sign(JWS_Payload, true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -344,7 +344,7 @@ public class BaseGuiServlet extends HttpServlet {
                     message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
                     JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
-                    jwsString = new JwsAsymKeySigner(privateKey, signatureAlgorithm)
+                    jwsString = new JWSAsymKeySigner(privateKey, signatureAlgorithm)
                                     .sign(JWS_Payload, true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -365,7 +365,7 @@ public class BaseGuiServlet extends HttpServlet {
                     message.setObject(SHREQSupport.SHREQ_SECINF_LABEL, secinf);
                     JWS_Payload = message.serializeToBytes(JSONOutputFormats.CANONICALIZED);
 
-                    jwsString = new JwsAsymKeySigner(privateKey, signatureAlgorithm)
+                    jwsString = new JWSAsymKeySigner(privateKey, signatureAlgorithm)
                                     .sign(JWS_Payload, true);
                     // Create the completed object which now is in "writer"
                     secinf.setString(SHREQSupport.SHREQ_JWS_STRING, jwsString);
@@ -380,7 +380,7 @@ public class BaseGuiServlet extends HttpServlet {
                                                                  signatureAlgorithm);
                     sampleUriRequestUri = SHREQSupport.addJwsToTargetUri(
                             sampleUriRequestUri2BeSigned,
-                            new JwsAsymKeySigner(privateKey, signatureAlgorithm)
+                            new JWSAsymKeySigner(privateKey, signatureAlgorithm)
                                 .sign(secinf.serializeToBytes(JSONOutputFormats.NORMALIZED), 
                                       false));
 

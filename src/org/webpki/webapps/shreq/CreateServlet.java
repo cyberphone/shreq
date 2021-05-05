@@ -35,9 +35,9 @@ import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.HmacAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
 
-import org.webpki.jose.jws.JwsAsymKeySigner;
-import org.webpki.jose.jws.JwsHmacSigner;
-import org.webpki.jose.jws.JwsSigner;
+import org.webpki.jose.jws.JWSAsymKeySigner;
+import org.webpki.jose.jws.JWSHmacSigner;
+import org.webpki.jose.jws.JWSSigner;
 
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONObjectWriter;
@@ -327,13 +327,13 @@ public class CreateServlet extends BaseGuiServlet {
                                                                AlgorithmPreferences.JOSE);
 
             // Get the signature key
-            JwsSigner jwsSigner;
+            JWSSigner jwsSigner;
             String validationKey;
             
             // Symmetric or asymmetric?
             if (signatureAlgorithm.isSymmetric()) {
                 validationKey = getParameter(request, TXT_SECRET_KEY);
-                jwsSigner = new JwsHmacSigner(DebugFormatter.getByteArrayFromHex(validationKey),
+                jwsSigner = new JWSHmacSigner(DebugFormatter.getByteArrayFromHex(validationKey),
                                              (HmacAlgorithms) signatureAlgorithm);
             } else {
                 // To simplify UI we require PKCS #8 with the public key embedded
@@ -347,16 +347,16 @@ public class CreateServlet extends BaseGuiServlet {
                 }
                 privateKeyBlob = null;  // Nullify it after use
                 validationKey = getPEMFromPublicKey(keyPair.getPublic());
-                jwsSigner = new JwsAsymKeySigner(keyPair.getPrivate(),
+                jwsSigner = new JWSAsymKeySigner(keyPair.getPrivate(),
                                               (AsymSignatureAlgorithms) signatureAlgorithm);
 
                 // Add other JWS header data that the demo program fixes 
                 if (certOption) {
-                    ((JwsAsymKeySigner)jwsSigner).setCertificatePath(
+                    ((JWSAsymKeySigner)jwsSigner).setCertificatePath(
                             PEMDecoder.getCertificatePath(getBinaryParameter(request,
                                                                              TXT_CERT_PATH)));
                 } else if (keyInlining) {
-                    ((JwsAsymKeySigner)jwsSigner).setPublicKey(keyPair.getPublic());
+                    ((JWSAsymKeySigner)jwsSigner).setPublicKey(keyPair.getPublic());
                 }
             }
 
