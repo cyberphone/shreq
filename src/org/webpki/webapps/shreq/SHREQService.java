@@ -33,6 +33,7 @@ import javax.servlet.ServletContextListener;
 
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
+import org.webpki.crypto.CustomCryptoProvider;
 import org.webpki.crypto.KeyStoreVerifier;
 import org.webpki.crypto.HmacAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
@@ -148,6 +149,7 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
     @Override
     public void contextInitialized(ServletContextEvent event) {
         initProperties(event);
+        CustomCryptoProvider.forcedLoad(false);
         try {
             /////////////////////////////////////////////////////////////////////////////////////////////
             // Sample key for verification

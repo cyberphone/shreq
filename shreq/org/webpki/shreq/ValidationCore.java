@@ -249,7 +249,7 @@ public abstract class ValidationCore {
         return tempSecinf;
     }
     
-    protected byte[] getDigest(String data) throws IOException {
+    protected byte[] getDigest(String data) throws IOException, GeneralSecurityException {
         return hashAlgorithm.digest(data.getBytes("utf-8"));
     }
 
