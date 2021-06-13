@@ -34,9 +34,10 @@ import javax.servlet.ServletContextListener;
 import org.webpki.crypto.AlgorithmPreferences;
 import org.webpki.crypto.AsymSignatureAlgorithms;
 import org.webpki.crypto.CustomCryptoProvider;
-import org.webpki.crypto.KeyStoreVerifier;
 import org.webpki.crypto.HmacAlgorithms;
 import org.webpki.crypto.SignatureAlgorithms;
+
+import org.webpki.crypto.signatures.KeyStoreVerifier;
 
 import org.webpki.shreq.SHREQSupport;
 
