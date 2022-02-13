@@ -48,7 +48,7 @@ import org.webpki.shreq.URIRequestValidation;
 import org.webpki.shreq.ValidationCore;
 import org.webpki.shreq.ValidationKeyService;
 
-import org.webpki.util.DebugFormatter;
+import org.webpki.util.HexaDecimal;
 import org.webpki.util.PEMDecoder;
 
 public class ValidateServlet extends BaseGuiServlet implements ValidationKeyService {
@@ -109,7 +109,7 @@ public class ValidateServlet extends BaseGuiServlet implements ValidationKeyServ
                                                                 :
                     validationKey.contains("-----") ?
                  PEMDecoder.getPublicKey(validationKey.getBytes("utf-8")) :
-                 DebugFormatter.getByteArrayFromHex(validationKey));
+                 HexaDecimal.decode(validationKey));
             
             
             // Core Request Data Successfully Collected - Validate!

@@ -50,7 +50,7 @@ import org.webpki.shreq.URIRequestValidation;
 import org.webpki.shreq.ValidationCore;
 import org.webpki.shreq.ValidationKeyService;
 
-import org.webpki.util.DebugFormatter;
+import org.webpki.util.HexaDecimal;
 
 import org.webpki.webutil.ServletUtil;
 
@@ -232,7 +232,7 @@ public abstract class BaseRequestServlet extends HttpServlet implements Validati
             }
             byte[] secretKey = SHREQService.predefinedSecretKeys
                     .get(signatureAlgorithm.getAlgorithmId(AlgorithmPreferences.JOSE));
-            validationCore.setCookie(DebugFormatter.getHexString(secretKey));
+            validationCore.setCookie(HexaDecimal.encode(secretKey));
             return new JWSHmacValidator(secretKey);
         }
         PublicKey validationKey;

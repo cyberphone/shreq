@@ -46,7 +46,7 @@ import org.webpki.json.JSONParser;
 
 import org.webpki.shreq.SHREQSupport;
 
-import org.webpki.util.DebugFormatter;
+import org.webpki.util.HexaDecimal;
 import org.webpki.util.PEMDecoder;
 
 public class CreateServlet extends BaseGuiServlet {
@@ -333,7 +333,7 @@ public class CreateServlet extends BaseGuiServlet {
             // Symmetric or asymmetric?
             if (signatureAlgorithm.isSymmetric()) {
                 validationKey = getParameter(request, TXT_SECRET_KEY);
-                jwsSigner = new JWSHmacSigner(DebugFormatter.getByteArrayFromHex(validationKey),
+                jwsSigner = new JWSHmacSigner(HexaDecimal.decode(validationKey),
                                              (HmacAlgorithms) signatureAlgorithm);
             } else {
                 // To simplify UI we require PKCS #8 with the public key embedded

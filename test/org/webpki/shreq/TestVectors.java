@@ -39,7 +39,7 @@ import org.webpki.jose.jws.JWSHmacSigner;
 import org.webpki.jose.jws.JWSSigner;
 
 import org.webpki.util.Base64;
-import org.webpki.util.DebugFormatter;
+import org.webpki.util.HexaDecimal;
 import org.webpki.util.ISODateTime;
 import org.webpki.util.PEMDecoder;
 import org.webpki.util.ArrayUtil;
@@ -103,7 +103,7 @@ public class TestVectors {
                 String keyInHex = utf8(readKey(keyAlgName + "bitkey.hex"));
                 keyInRFCText = keyInHex;
                 keyRFCDescription = "Symmetric signature validation key, here in hexadecimal notation:";
-                jwsSigner = new JWSHmacSigner(DebugFormatter.getByteArrayFromHex(keyInHex),
+                jwsSigner = new JWSHmacSigner(HexaDecimal.decode(keyInHex),
                                              (HmacAlgorithms) signatureAlgorithm);
             } else {
                 KeyPair keyPair = PEMDecoder.getKeyPair(readKey(keyAlgName + "privatekey.pem"));
