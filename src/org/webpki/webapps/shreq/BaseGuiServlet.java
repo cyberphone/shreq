@@ -256,7 +256,7 @@ public class BaseGuiServlet extends HttpServlet {
     
     static String getPEMFromPublicKey(PublicKey publicKey) {
         return  "-----BEGIN PUBLIC KEY-----\n" +
-                new Base64().getBase64StringFromBinary(publicKey.getEncoded()) +
+                Base64.encode(publicKey.getEncoded()) +
                 "\n-----END PUBLIC KEY-----";
     }
 

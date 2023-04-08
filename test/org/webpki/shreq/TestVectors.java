@@ -110,7 +110,7 @@ public class TestVectors {
                 keyRFCDescription = "Public signature validation key, here in PEM format:";
                 keyInRFCText = 
                     "-----BEGIN PUBLIC KEY-----\n" +
-                    new Base64(RFC_ARTWORK_LINE_MAX).getBase64StringFromBinary(keyPair.getPublic().getEncoded()) +
+                    Base64.mimeEncode(keyPair.getPublic().getEncoded()) +
                     "\n-----END PUBLIC KEY-----";
                 jwsSigner = new JWSAsymKeySigner(keyPair.getPrivate(),
                                               (AsymSignatureAlgorithms) signatureAlgorithm);
