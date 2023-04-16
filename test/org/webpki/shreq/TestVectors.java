@@ -40,6 +40,7 @@ import org.webpki.jose.jws.JWSSigner;
 
 import org.webpki.util.Base64;
 import org.webpki.util.HexaDecimal;
+import org.webpki.util.IO;
 import org.webpki.util.ISODateTime;
 import org.webpki.util.PEMDecoder;
 import org.webpki.util.ArrayUtil;
@@ -278,13 +279,13 @@ public class TestVectors {
                     frozen,
                     header);
 
-            ArrayUtil.writeFile(argv[1], rfcText.toString().getBytes("utf-8"));
+            IO.writeFile(argv[1], rfcText.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     static byte[] readKey(String filename) throws IOException {
-        return ArrayUtil.readFile(keyDirectory + File.separator + filename);
+        return IO.readFile(keyDirectory + File.separator + filename);
     }
 }

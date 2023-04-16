@@ -40,8 +40,8 @@ import org.webpki.crypto.KeyStoreVerifier;
 
 import org.webpki.shreq.SHREQSupport;
 
-import org.webpki.util.ArrayUtil;
 import org.webpki.util.HexaDecimal;
+import org.webpki.util.IO;
 import org.webpki.util.PEMDecoder;
 
 import org.webpki.webutil.InitPropertyReader;
@@ -135,7 +135,7 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
     }
  
     byte[] getEmbeddedResourceBinary(String name) throws IOException {
-        return ArrayUtil.getByteArrayFromInputStream(getResource(name));
+        return IO.getByteArrayFromInputStream(getResource(name));
     }
 
     String getEmbeddedResourceString(String name) throws IOException {
