@@ -23,6 +23,7 @@ import java.security.PublicKey;
 
 import java.security.cert.X509Certificate;
 
+import java.util.Arrays;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -43,7 +44,6 @@ import org.webpki.json.JSONArrayReader;
 import org.webpki.json.JSONObjectReader;
 import org.webpki.json.JSONParser;
 
-import org.webpki.util.ArrayUtil;
 import org.webpki.util.Base64URL;
 
 public abstract class ValidationCore {
@@ -242,7 +242,7 @@ public abstract class ValidationCore {
                     error("Duplicate header in \"" + SHREQSupport.SHREQ_HEADER_RECORD + "\"");
                 }
             }
-            if (!ArrayUtil.compare(headerDigest, getDigest(headerBlob.toString()))) {
+            if (!Arrays.equals(headerDigest, getDigest(headerBlob.toString()))) {
                 error("\"" + SHREQSupport.SHREQ_HEADER_RECORD + "\" digest error");
             }
         }

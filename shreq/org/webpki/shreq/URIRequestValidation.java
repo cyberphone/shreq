@@ -20,11 +20,10 @@ import java.io.IOException;
 
 import java.security.GeneralSecurityException;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import org.webpki.json.JSONParser;
-
-import org.webpki.util.ArrayUtil;
 
 public class URIRequestValidation extends ValidationCore {
     
@@ -58,8 +57,8 @@ public class URIRequestValidation extends ValidationCore {
         decodeJwsString(jwsString, false);
         secinf = commonDataFilter(JSONParser.parse(jwsPayload), true);
 
-        if (!ArrayUtil.compare(secinf.getBinary(SHREQSupport.SHREQ_HASHED_TARGET_URI),
-                               getDigest(normalizedTargetUri))) {
+        if (!Arrays.equals(secinf.getBinary(SHREQSupport.SHREQ_HASHED_TARGET_URI),
+                           getDigest(normalizedTargetUri))) {
             error("URI mismatch. Normalized URI: " + normalizedTargetUri);
         }
     }

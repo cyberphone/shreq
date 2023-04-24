@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyStore;
-
+import java.security.cert.X509Certificate;
 import java.util.LinkedHashMap;
 
 import java.util.logging.Level;
@@ -181,9 +181,8 @@ public class SHREQService extends InitPropertyReader implements ServletContextLi
             
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(null, null);
-            keyStore.setCertificateEntry(
-                          "mykey",
-                          PEMDecoder.getRootCertificate(getEmbeddedResourceBinary("rootca.pem")));
+            X509Certificate[] path = PEMDecoder.getCertificatePath(getEmbeddedResourceBinary("rootca.pem"));
+            keyStore.setCertificateEntry("mykey", path[path.length - 1]);
             certificateVerifier = new KeyStoreVerifier(keyStore);
 
             /////////////////////////////////////////////////////////////////////////////////////////////
